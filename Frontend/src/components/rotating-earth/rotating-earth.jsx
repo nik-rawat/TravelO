@@ -42,7 +42,7 @@ function Earth({ onLoaded }) {
         />
       </mesh>
       <Text
-        position={[0, 0, 0]} // Position the text behind the Earth and adjust for the new Earth position
+        position={[0, 1.5, 0]} // Position the text behind the Earth and adjust for the new Earth position
         fontSize={0.5}
         color="white"
         // font="/path/to/classy-font.woff" // Ensure you have a classy font file
