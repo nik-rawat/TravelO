@@ -1,6 +1,10 @@
+import RotatingEarth from "./components/rotating-earth/rotating-earth"
+
 const App = () => {
   return (
-    <div>Travelo</div>
+    <div className="h-svh">
+      <RotatingEarth />
+    </div>
   )
 }
 
