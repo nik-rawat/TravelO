@@ -7,14 +7,7 @@ import * as THREE from "three";
 
 function Earth({ onLoaded }) {
   const meshRef = useRef(null);
-  const texture = useLoader(THREE.TextureLoader, "./assets/earth-texture-max.jpg");
-  // const bumpMap = useLoader(THREE.TextureLoader, "./assets/earth-bump-map.jpg");
-  // const specularMap = useLoader(THREE.TextureLoader, "./assets/earth-specular-map.jpg");
-
-  // Set texture filtering and anisotropy
-  texture.minFilter = THREE.LinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.anisotropy = 16; // Adjust based on your GPU capabilities
+  const texture = useLoader(THREE.TextureLoader, "/assets/earth-texture-min.jpg");
 
   useEffect(() => {
     if (onLoaded) {
@@ -30,25 +23,23 @@ function Earth({ onLoaded }) {
 
   return (
     <>
-      <mesh ref={meshRef} position={[0, -4.5, 0]}> {/* Position the Earth along the negative Y-axis */}
-        <sphereGeometry args={[3.5, 256, 256]} /> {/* Increased segments for more detail */}
+      <mesh ref={meshRef} position={[0, -6, 5]} name="earth"> {/* Added name for identification */}
+        <sphereGeometry args={[5, 64, 64]} />
         <meshStandardMaterial 
           map={texture} 
-          // bumpMap={bumpMap} 
           bumpScale={0.05} 
-          // specularMap={specularMap} 
           metalness={0.3} 
           roughness={0.7} 
         />
       </mesh>
       <Text
-        position={[0, 1.5, 0]} // Position the text behind the Earth and adjust for the new Earth position
+        position={[0, 1.5, 0]}
         fontSize={0.5}
         color="white"
-        // font="/path/to/classy-font.woff" // Ensure you have a classy font file
         anchorX="center"
         anchorY="middle"
         fontWeight={700}
+        name="travelo-text" // Added name to exclude from bloom
       >
         Travelo
       </Text>
@@ -60,7 +51,7 @@ export default function RotatingEarth({ onLoaded }) {
   const [spring, api] = useSpring(() => ({
     from: { scale: [1, 1, 1] },
     to: { scale: [0.4, 0.4, 0.4] },
-    config: { tension: 170, friction: 26, duration: 500 }, // Adjusted for smoother animation
+    config: { tension: 170, friction: 26, duration: 500 },
     onRest: onLoaded,
   }));
 
@@ -70,16 +61,28 @@ export default function RotatingEarth({ onLoaded }) {
 
   return (
     <div className="relative w-full h-svh bg-black">
-      <Canvas camera={{ position: [0, 0, 6], fov: 17 }}>
-        <ambientLight intensity={1.5} />
-        <pointLight position={[10, 10, 10]} />
+      <Canvas 
+      camera={{ position: [0, 0, 6], fov: 40 }} 
+      gl={{ antialias: true }}
+      dpr={ window.devicePixelRatio }
+      >
+        <ambientLight intensity={2.5} />
+        <pointLight position={[10, 10, 20]} intensity={100}/>
         <a.group scale={spring.scale}>
           <Earth onLoaded={onLoaded} />
         </a.group>
         <Stars radius={300} depth={60} count={5000} factor={7} saturation={0} fade speed={1} />
         <OrbitControls enableZoom={false} enableRotate={false} />
         <EffectComposer>
-          <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} height={300} />
+          <Bloom 
+            luminanceThreshold={0.1} 
+            luminanceSmoothing={0.9} 
+            height={300}
+            kernelSize={3}
+            intensity={0.5}
+            // Select only the earth mesh for bloom effect
+            selection={['earth']} 
+          />
         </EffectComposer>
       </Canvas>
     </div>
