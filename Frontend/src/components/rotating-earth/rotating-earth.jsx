@@ -76,10 +76,10 @@ export default function RotatingEarth({ onLoaded }) {
         <a.group scale={spring.scale}>
           <Earth onLoaded={onLoaded} />
         </a.group>
-        <Stars radius={300} depth={60} count={5000} factor={7} saturation={0} fade speed={1} />
+        <Stars radius={300} depth={60} count={5000} factor={7} saturation={0} fade speed={1.5} />
         <OrbitControls enableZoom={false} enableRotate={false} />
         <EffectComposer>
-          <Bloom luminanceThreshold={0.1} luminanceSmoothing={0.9} height={300} />
+          <Bloom luminanceThreshold={0.1} luminanceSmoothing={1.8} height={300} />
         </EffectComposer>
       </Canvas>
     </div>
