@@ -5,6 +5,8 @@ import Plans from "./pages/Plans"
 import Places from "./pages/Places"
 import Gallery from "./pages/Gallery"
 import Reviews from "./pages/Reviews"
+import Login from "./pages/Login"
+import Register from "./pages/Register"
 const App = () => {
   return (
     <div>
@@ -16,6 +18,9 @@ const App = () => {
           <Route path="/places" element={<Places />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/reviews" element={<Reviews />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
 
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
