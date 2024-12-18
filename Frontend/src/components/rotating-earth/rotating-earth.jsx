@@ -26,7 +26,7 @@ function Earth({ onLoaded }) {
   });
 
   return (
-    <mesh ref={meshRef} position={[0, -6, 5]} name="earth">
+    <a.mesh ref={meshRef} position={[0, -6, 5]} name="earth">
       <sphereGeometry args={[5, 64, 64]} />
       <meshStandardMaterial
         map={texture}
@@ -35,15 +35,15 @@ function Earth({ onLoaded }) {
         roughness={0.7}
       />
       <Hero style={{ pointerEvents: "auto" }} />
-    </mesh>
+    </a.mesh>
   );
 }
 
 export default function RotatingEarth({ onLoaded }) {
   const [spring, api] = useSpring(() => ({
-    from: { scale: [1, 1, 1] },
-    to: { scale: [0.4, 0.4, 0.4] },
-    config: { tension: 170, friction: 26, duration: 500 },
+    from: { scale: [1, 1, 1], rotation: 0 },
+    to: { scale: [0.4, 0.4, 0.4], rotation: Math.PI * 2 },
+    config: { tension: 100, friction: 5, duration: 1000, easing: (t) => t * (2 - t)  },
     onRest: onLoaded,
   }));
 

@@ -17,7 +17,8 @@ const Navbar = () => {
   return (
     <nav className="flex justify-between items-center px-4 md:px-8 py-4 bg-transparent text-white">
       {/* Logo */}
-      <Link to="/" className="font-bold text-lg tracking-wide">
+      <Link to="/" className="flex items-center font-bold text-lg tracking-wide">
+        <img src="/assets/Travelo-white-bg.png" alt="TravelO" className="h-8 mr-4 w-auto rounded"/>
         TravelO
       </Link>
 
