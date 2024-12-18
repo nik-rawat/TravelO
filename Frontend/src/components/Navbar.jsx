@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 const Navbar = () => {
     return (
       <nav className="flex justify-between items-center px-4 py-0 bg-transparent text-white text-lg font-sans ml-10">
