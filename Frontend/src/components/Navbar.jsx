@@ -34,7 +34,7 @@ const Navbar = () => {
         ))}
         <Link to="/login">
           <Button variant="default" size="sm">
-            Enroll
+            Login
           </Button>
         </Link>
       </div>
