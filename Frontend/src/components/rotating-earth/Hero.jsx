@@ -11,9 +11,9 @@ const Hero = () => {
         <Navbar />
       </header>
       <div className="text-center text-white bg-transparent p-4 rounded-lg w-svw font-serif">
-        <h1 className="uppercase text-6xl font-bold mb-6">Travelo</h1>
+        <h1 className="uppercase text-4xl font-bold mb-6">Travelo</h1>
         <p className="text-lg mb-6 font-sans max-w-md mx-auto">Explore the World, One Journey at a Time</p>
-        <button className="bg-white hover:bg-gray-300 font-bold font-sans text-sm text-black py-2 px-8 rounded-full transition duration-300" onClick={() => window.location.href = "/plans"}>
+        <button className="bg-white hover:bg-gray-300 font-bold font-sans text-sm text-black py-1 px-4 rounded-full transition duration-300" onClick={() => window.location.href = "/plans"}>
           START EXPLORING
         </button>
 

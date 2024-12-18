@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { OrbitControls, Stars, Html } from "@react-three/drei";
+import { OrbitControls, Stars } from "@react-three/drei";
 import { a, useSpring } from "@react-spring/three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
