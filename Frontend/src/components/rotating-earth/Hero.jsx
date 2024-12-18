@@ -16,6 +16,7 @@ const Hero = () => {
         <button className="bg-white hover:bg-gray-300 font-bold font-sans text-sm text-black py-2 px-8 rounded-full transition duration-300" onClick={() => window.location.href = "/plans"}>
           START EXPLORING
         </button>
+
       </div>
     </Html>
   );
