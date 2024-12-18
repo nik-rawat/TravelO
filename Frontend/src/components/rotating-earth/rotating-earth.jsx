@@ -51,7 +51,7 @@ export default function RotatingEarth({ onLoaded }) {
   }, [api]);
 
   return (
-    <div className="relative w-full h-svh bg-black">
+    <div className="relative w-svw h-svh bg-black">
       <Canvas 
       camera={{ position: [0, 0, 6], fov: 40 }} 
       gl={{ antialias: true }}
