@@ -4,7 +4,6 @@ import React, { Suspense, useState, useEffect } from "react";
 const RotatingEarth = React.lazy(() => import("../components/rotating-earth/rotating-earth"));
 import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 import "./Home.css";
-import Navbar from "../components/Navbar";
 
 const Home = () => {
   const [loaded, setLoaded] = useState(false);

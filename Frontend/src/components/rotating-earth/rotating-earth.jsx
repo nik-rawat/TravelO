@@ -27,7 +27,7 @@ function Earth({ onLoaded }) {
     <mesh ref={meshRef} position={[0, -6, 5]} name="earth">
       <sphereGeometry args={[5, 64, 64]} />
       <meshStandardMaterial 
-        map={texture} 
+        map={texture}
         bumpScale={0.05} 
         metalness={0.3} 
         roughness={0.7} 
@@ -52,7 +52,7 @@ export default function RotatingEarth({ onLoaded }) {
   return (
     <div className="relative w-svw h-svh bg-black">
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 }}>
-        <Navbar />
+        <Navbar className="relative z-10"/>
       </div>
       <Canvas 
         camera={{ position: [0, 0, 6], fov: 40 }} 

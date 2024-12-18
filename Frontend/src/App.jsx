@@ -2,6 +2,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import RotatingEarth from "./components/rotating-earth/rotating-earth"
 import Home from "./pages/Home"
 import Plans from "./pages/Plans"
+import Places from "./pages/Places"
+import Gallery from "./pages/Gallery"
+import Reviews from "./pages/Reviews"
 const App = () => {
   return (
     <div>
@@ -10,6 +13,10 @@ const App = () => {
           <Route index element={<Home />} />
           <Route path="/earth" element={<RotatingEarth />} />
           <Route path="/plans" element={<Plans />} />
+          <Route path="/places" element={<Places />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/reviews" element={<Reviews />} />
+
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </Router>
