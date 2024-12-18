@@ -5,6 +5,7 @@ import { a, useSpring } from "@react-spring/three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Hero from "./Hero";
+import Navbar from "../Navbar";
 
 function Earth({ onLoaded }) {
   const meshRef = useRef(null);
@@ -23,18 +24,16 @@ function Earth({ onLoaded }) {
   });
 
   return (
-    <>
-      <mesh ref={meshRef} position={[0, -6, 5]} name="earth"> {/* Added name for identification */}
-        <sphereGeometry args={[5, 64, 64]} />
-        <meshStandardMaterial 
-          map={texture} 
-          bumpScale={0.05} 
-          metalness={0.3} 
-          roughness={0.7} 
-        />
-        <Hero />
-      </mesh>
-    </>
+    <mesh ref={meshRef} position={[0, -6, 5]} name="earth">
+      <sphereGeometry args={[5, 64, 64]} />
+      <meshStandardMaterial 
+        map={texture} 
+        bumpScale={0.05} 
+        metalness={0.3} 
+        roughness={0.7} 
+      />
+      <Hero />
+    </mesh>
   );
 }
 
@@ -52,10 +51,13 @@ export default function RotatingEarth({ onLoaded }) {
 
   return (
     <div className="relative w-svw h-svh bg-black">
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 }}>
+        <Navbar />
+      </div>
       <Canvas 
-      camera={{ position: [0, 0, 6], fov: 40 }} 
-      gl={{ antialias: true }}
-      dpr={ window.devicePixelRatio }
+        camera={{ position: [0, 0, 6], fov: 40 }} 
+        gl={{ antialias: true }}
+        dpr={ window.devicePixelRatio }
       >
         <ambientLight intensity={2.5} />
         <pointLight position={[10, 10, 20]} intensity={100}/>
@@ -71,7 +73,6 @@ export default function RotatingEarth({ onLoaded }) {
             height={300}
             kernelSize={3}
             intensity={0.5}
-            // Select only the earth mesh for bloom effect
             selection={['earth']} 
           />
         </EffectComposer>
