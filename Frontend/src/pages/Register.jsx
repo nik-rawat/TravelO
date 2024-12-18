@@ -1,8 +1,10 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Navbar from "../components/Navbar";
+import { Link } from "react-router";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -63,7 +65,7 @@ const LoginPage = () => {
           </Button>
         </form>
         <p className="text-slate-400 text-center mt-4">
-          Don't have an account? <a href="/login" className="text-blue-400 hover:underline">Sign In</a>
+          Don't have an account? <Link to="/login" className="text-blue-400 hover:underline">Sign In</Link>
         </p>
       </div>
     </div>

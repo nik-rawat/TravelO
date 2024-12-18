@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import RotatingEarth from "./components/rotating-earth/rotating-earth"
-import Home from "./pages/Home"
 import Plans from "./pages/Plans"
 import Places from "./pages/Places"
 import Gallery from "./pages/Gallery"
 import Reviews from "./pages/Reviews"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
+import Home from "./pages/home"
 const App = () => {
   return (
     <div>
