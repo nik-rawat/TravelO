@@ -13,22 +13,10 @@ export const addDocument = async (collection, data) => {
 };
 
 // Add a new user in user collection
-export const addUser = async (userData, mentalAssessment) => {
+export const addUser = async (userData) => {
     try {
         await setDoc(doc(db, "users", userData.uid), userData);
-        await setDoc(doc(db, "assessments", userData.uid), {
-            moodStatus: [],
-            mentalAssessment: mentalAssessment
-        })
-        await setDoc(doc(db, "subscription", userData.uid), {
-            plan: "basic",
-            expire: new Date(),
-            purchaseHistory: [],
-        })
-        await setDoc(doc(db, "userChats", userData.uid), {
-            chats: [],
-        })
-        return {msg: "User added successfully"}
+        return {status: 201, msg: "User added successfully"}
     } catch (error) {
         console.log(error);
     }
@@ -100,4 +88,3 @@ export const getDocument = async (collection, document) => {
         console.log(error);
     }
 };
-

@@ -15,9 +15,10 @@ export async function handler(req, res, method) {
     if (method === "GET") {
         // If the path is '/', return a welcome message
         if (path === "/") {
-            return { status: 200, data: "Welcome to the homepage of Mental Alchemy!" };
+            return { status: 200, data: "GET SET TravelO!" };
         }
     }
+    
 
     // Handle POST requests
     if (method === "POST") {
