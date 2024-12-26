@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVe
 import { addUser } from "./userController.js";
 
 export const registerWithAuth = async (data) => {
-    const {username, email, password, fname, lname, gender, avatar, registeredOn} = data;
+    const {username, email, password, age, fname, lname, gender, avatar, registeredOn} = data;
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -15,17 +15,14 @@ export const registerWithAuth = async (data) => {
             fname,
             lname,
             gender: gender ?? "prefer not to say", //default gender 
-            occupation: occupation ?? "prefer not to say", //default occupation 
             registeredOn: registeredOn ?? new Date(), //give current time of registration
-            avatar: avatar ?? "https://firebasestorage.googleapis.com/v0/b/mental-alchemy.appspot.com/o/images%2Favatar%2Fuser.png?alt=media&token=7a66b089-bc8a-4fba-b1f4-f17dc192413a",
-            consent_agreed: consent_agreed ?? false
+            avatar: avatar ?? "https://firebasestorage.googleapis.com/v0/b/travelo-b3a59.firebasestorage.app/o/images%2Fprof.png?alt=media&token=cba32a15-af9b-4256-acbe-2cdb1d0a75b4",
         }
         
         await sendEmailVerification(userCredential.user).then(() => {
-          return ("Email verification link sent");
+          console.log("Email verification link sent");
         });
-        
-        return await addUser(userData, mentalAssessment);
+        return await addUser(userData);
     } catch (error) {
         if (error.code === "auth/email-already-in-use") {
             return {"msg": "Email is already registered"};
@@ -37,8 +34,7 @@ export const registerWithAuth = async (data) => {
 
 //register user
 export const register = async (data) => {
-    const {uid, email, phoneNumber, age, fname, lname, gender, occupation, avatar, registeredOn, consent_agreed} = data;
-    const {q1, q2, q3, q4, q5, q6, q7, q8} = data;
+    const {uid, email, phoneNumber, age, fname, lname, gender, avatar, registeredOn } = data;
 
     try {
         const userData = {
@@ -49,9 +45,8 @@ export const register = async (data) => {
             fname,
             lname,
             gender: gender ?? "prefer not to say", //default gender
-            occupation: occupation ?? "prefer not to say", //default occupation 
             registeredOn: registeredOn ?? new Date(), //give current time of registration
-            avatar: avatar ?? "https://firebasestorage.googleapis.com/v0/b/mental-alchemy.appspot.com/o/images%2Favatar%2Fuser.png?alt=media&token=7a66b089-bc8a-4fba-b1f4-f17dc192413a",
+            avatar: avatar ?? "https://firebasestorage.googleapis.com/v0/b/travelo-b3a59.firebasestorage.app/o/images%2Fprof.png?alt=media&token=cba32a15-af9b-4256-acbe-2cdb1d0a75b4",
             consent_agreed: consent_agreed ?? false
         }
         const mentalAssessment = {0:q1, 1:q2, 2:q3, 3:q4, 4:q5, 5:q6, 6:q7, 7:q8};
@@ -93,8 +88,8 @@ export const login = async (data) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        if(user.emailVerified) return data;
-        else return {"msg": "user email not verified"};
+        if(user.emailVerified) return user;
+        else throw new Error("user email not verified");
 
         // if (user.emailVerified) {
         //     // Generate an authentication token using Firebase Auth

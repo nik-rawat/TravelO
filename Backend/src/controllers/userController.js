@@ -16,7 +16,7 @@ export const addDocument = async (collection, data) => {
 export const addUser = async (userData) => {
     try {
         await setDoc(doc(db, "users", userData.uid), userData);
-        return {status: 201, msg: "User added successfully"}
+        return (userData);
     } catch (error) {
         console.log(error);
     }
