@@ -1,0 +1,19 @@
+{
+  "name": "travelo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm start\"",
+    "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm start\"",
+    "build": "concurrently \"cd frontend && npm run build\" \"cd backend && npm start\"",
+    "install-all": "concurrently \"cd frontend && npm install\" \"cd backend && npm install\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
