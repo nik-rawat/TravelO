@@ -22,6 +22,17 @@ export const addUser = async (userData) => {
     }
 };
 
+// change avatar of user
+export const changeAvatar = async (data) => {
+    try {
+        const {uid, avatarURL} = data;
+        const userRef = doc(db, "users", uid);
+        await updateDoc(userRef, {avatar: avatarURL});
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 // Get data of user from users collection
 export const getUser = async (data) => {
     if (!data || !data.uid) {
@@ -30,9 +41,7 @@ export const getUser = async (data) => {
     try{
         const collectionRef = collection(db, "users");
         // const finalData = [];
-        const q = query(
-        collectionRef, 
-        where('uid', '==', data.uid));
+        const q = query(collectionRef, where('uid', '==', data.uid));
         const docSnap = await getDocs(q);
         // docSnap.forEach((doc) => {
         // // console.log(doc.age);

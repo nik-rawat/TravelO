@@ -7,6 +7,7 @@ import Reviews from "./pages/Reviews"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Home from "./pages/Home"
+import Dashboard from "./pages/Dashboard"
 const App = () => {
   return (
     <div>
@@ -20,7 +21,7 @@ const App = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
+          <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
