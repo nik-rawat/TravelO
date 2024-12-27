@@ -56,7 +56,7 @@ export default function RotatingEarth({ onLoaded }) {
   }, [api]);
 
   return (
-    <div className="relative w-svw h-svh bg-black">
+    <div className="relative w-svw h-svh bg-gradient-to-b from-slate-900 to-slate-800">
       <div
         style={{
           position: "absolute",
