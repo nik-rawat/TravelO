@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Mountain, Sun, Globe, Landmark, Building, Camera, TreePalm, History } from "lucide-react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 const placesData = [
   {
@@ -14,7 +16,7 @@ const placesData = [
       {
         title: "Mountain Explorer",
         description: "Summit majestic peaks and discover hidden valleys.",
-        price: "$₹24,999",
+        price: "₹24,999",
         duration: "3 days",
         location: "Swiss Alps",
         maxGroup: 8,
@@ -215,7 +217,43 @@ const placesData = [
   },
 ];
 
+const url = 'https://travel-o-backend.vercel.app/api/getPlaces';
+
 const Places = () => {
+  const [places, setPlaces] = useState(placesData); // Initialize with static data
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get(url);
+        setPlaces(response.data.data); // Update state with fetched data
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setError('Failed to fetch places');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlaces();
+
+    return () => {
+      // Cleanup if necessary
+    };
+  }, [url]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Loading state
+  }
+
+  if (error) {
+    return <div>{error}</div>; // Error state
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
       <Navbar />
@@ -228,15 +266,14 @@ const Places = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {placesData.map((place, index) => (
+          {places.map((place, index) => (
             <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="p-2 bg-slate-800 rounded-lg">
-                    <place.icon className="w-8 h-8 text-blue-400" /> {/* Increased icon size */}
+                    <place.icon className="w-8 h-8 text-blue-400" />
                   </div>
-                  <Badge className="bg-blue-600 text-white rounded-full px-3 py-1 text-sm font-semibold hover:bg-blue-700 transition ```javascript
-                    duration-200">
+                  <Badge className="bg-blue-600 text-white rounded-full px-3 py-1 text-sm font-semibold hover:bg-blue-700 transition duration-200">
                     {place.badge}
                   </Badge>
                 </div>
@@ -256,7 +293,7 @@ const Places = () => {
                 <div className="space-y-2">
                   {place.reviews.map((review, i) => (
                     <div key={i} className="flex items-center space-x-2">
-                      <img src={review.photo} alt={review.reviewer} className="w-12 h-12 rounded-full" />
+                      <img src={review.photo} alt={review.reviewer} className="w-12 h-12 rounded-full " />
                       <div>
                         <p className="text-slate-300">{review.review}</p>
                         <span className="text-slate-400">- {review.reviewer}</span>

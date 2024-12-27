@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit2, Save, X } from 'lucide-react';
+import { Edit2, Save, X, Upload } from 'lucide-react';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+import Navbar from '../components/Navbar';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -12,10 +14,14 @@ const Dashboard = () => {
   const [tempValues, setTempValues] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  const userId = 'a7mfrQXJD9OqS1pQvJy6VYA4mOn1';
+  const fileInputRef = useRef(null);
+
+  const userId = useSelector((state) => state.auth.uid);
+    console.log(userId);
+//   const userId = 'QT0KSFMgcvZ8aD6SRGIYjtr8r953'; // hardcoded for demo purposes
   const url = `https://travel-o-backend.vercel.app/api/getUser/${userId}`;
   const updateUrl = `https://travel-o-backend.vercel.app/api/updateUser`;
+  const avatarUrl = 'https://travel-o-backend.vercel.app/api/updateAvatar';
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -24,7 +30,6 @@ const Dashboard = () => {
       try {
         const response = await axios.get(url);
         setUser(response.data.data);
-        // Initialize tempValues with all user data
         setTempValues(response.data.data);
       } catch (error) {
         setError('Failed to fetch user data');
@@ -46,11 +51,14 @@ const Dashboard = () => {
         [field]: value
       };
       
-      const response = await axios.put(updateUrl, updateData);
+      const response = await axios.put(updateUrl, updateData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      if (response.data.success) {
+      if (response.data) {
         setUser(prev => ({ ...prev, [field]: value }));
-        setTempValues(prev => ({ ...prev, [field]: value }));
         setEditingField(null);
       } else {
         throw new Error('Update failed');
@@ -58,6 +66,37 @@ const Dashboard = () => {
     } catch (error) {
       setError('Failed to update user data');
       console.error('Error updating user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAvatarUpdate = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+    formData.append('uid', userId);
+
+    try {
+      const response = await axios.put(avatarUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data) {
+        setUser(prev => ({ ...prev, avatar: response.data.avatar }));
+      } else {
+        throw new Error('Avatar update failed');
+      }
+    } catch (error) {
+      setError('Failed to update avatar');
+      console.error('Error updating avatar:', error);
     } finally {
       setIsLoading(false);
     }
@@ -73,43 +112,16 @@ const Dashboard = () => {
     setError(null);
   };
 
-  if (isLoading && !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-32 h-32 md:w-48 md:h-48 bg-slate-700 rounded-full"></div>
-          <div className="h-8 w-48 md:w-64 bg-slate-700 rounded"></div>
-          <div className="h-6 w-32 md:w-48 bg-slate-700 rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-slate-800/50 backdrop-blur-sm border-red-700">
-          <CardContent className="p-6">
-            <p className="text-red-400 text-center">{error}</p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 w-full"
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
-  const registrationDate = new Date(user.registeredOn.seconds * 1000).toLocaleDateString();
-
   // eslint-disable-next-line react/prop-types
   const EditableField = ({ field, value, type = 'text' }) => {
     const isEditing = editingField === field;
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+      if (isEditing && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [isEditing]);
 
     if (isEditing) {
       return (
@@ -117,7 +129,9 @@ const Dashboard = () => {
           {type === 'select' ? (
             <Select 
               value={tempValues[field]} 
-              onValueChange={(value) => setTempValues(prev => ({ ...prev, [field]: value }))}
+              onValueChange={(value) => {
+                setTempValues(prev => ({ ...prev, [field]: value }));
+              }}
               disabled={isLoading}
             >
               <SelectTrigger className="w-full sm:w-32 bg-slate-700">
@@ -131,9 +145,13 @@ const Dashboard = () => {
             </Select>
           ) : (
             <Input
+              ref={inputRef}
               type={type}
               value={tempValues[field] || ''}
-              onChange={(e) => setTempValues(prev => ({ ...prev, [field]: e.target.value }))}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setTempValues(prev => ({ ...prev, [field]: newValue }));
+              }}
               className="w-full sm:w-32 bg-slate-700 text-white hover:bg-slate-800 focus:bg-slate-800"
               disabled={isLoading}
             />
@@ -178,60 +196,113 @@ const Dashboard = () => {
     );
   };
 
+  // Rest of the loading and error states remain the same...
+  if (isLoading && !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-32 h-32 md:w-48 md:h-48 bg-slate-700 rounded-full"></div>
+          <div className="h-8 w-48 md:w-64 bg-slate-700 rounded"></div>
+          <div className="h-6 w-32 md:w-48 bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-slate-800/50 backdrop-blur-sm border-red-700">
+          <CardContent className="p-6">
+            <p className="text-red-400 text-center">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 w-full"
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const registrationDate = new Date(user.registeredOn.seconds * 1000).toLocaleDateString();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 flex items-center justify-center">
-      <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
-        <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
-          <div className="relative group">
-            <img 
-              src={user.avatar} 
-              alt="User Avatar" 
-              className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl transition-transform group-hover:scale-105" 
-            />
-            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Button variant="ghost" className="text-white text-sm md:text-base">
-                Change Avatar
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <Navbar />
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 flex items-center justify-center">
+        <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
+            <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
+            <div className="relative group">
+                <img 
+                src={user.avatar} 
+                alt="User Avatar" 
+                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl transition-transform group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleAvatarUpdate}
+                    accept="image/*"
+                    className="hidden"
+                />
+                <Button 
+                    variant="ghost" 
+                    className="text-white text-sm md:text-base"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Change Avatar
+                </Button>
+                </div>
             </div>
-          </div>
-          <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
-            <EditableField field="username" value={user.username} />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 p-4 md:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">First Name:</span>
-                <EditableField field="fname" value={user.fname} />
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">Last Name:</span>
-                <EditableField field="lname" value={user.lname} />
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">Email:</span>
-                <EditableField field="email" value={user.email} type="email" />
-              </div>
+            <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
+                <EditableField field="username" value={user.username} />
+            </CardTitle>
+            </CardHeader>
+            {/* Rest of the CardContent remains the same... */}
+            <CardContent className="space-y-6 p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+                <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">First Name:</span>
+                    <EditableField field="fname" value={user.fname} />
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">Last Name:</span>
+                    <EditableField field="lname" value={user.lname} />
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">Email:</span>
+                    <EditableField field="email" value={user.email} type="email" />
+                </div>
+                </div>
+                <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">Age:</span>
+                    <EditableField field="age" value={user.age} type="number" />
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">Gender:</span>
+                    <EditableField field="gender" value={user.gender} type="select" />
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <span className="text-slate-400">Registered:</span>
+                    <span>{registrationDate}</span>
+                </div>
+                </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">Age:</span>
-                <EditableField field="age" value={user.age} type="number" />
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">Gender:</span>
-                <EditableField field="gender" value={user.gender} type="select" />
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <span className="text-slate-400">Registered:</span>
-                <span>{registrationDate}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+        </Card>
+        </div>
     </div>
+
   );
 };
 

@@ -5,7 +5,7 @@ import Places from "./pages/Places"
 import Gallery from "./pages/Gallery"
 import Reviews from "./pages/Reviews"
 import Login from "./pages/Login"
-import Register from "./pages/Register"
+import Register from "./pages/Register" 
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 const App = () => {

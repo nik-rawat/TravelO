@@ -62,6 +62,88 @@ app.get('/api/getUser/:uid', async (req, res) => {
   }
 });
 
+app.get('/api/getPlans', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+app.get('/api/getPlaces', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getReviews', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/gallery', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getUserReviews/:uid', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getUserPlans/:uid', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getUserBookings/:uid', async (req, res) => {
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// DELETE request
+app.delete('/api/deleteReview/:rid', async (req, res) => {
+  try {
+    const result = await handler(req, res, "DELETE");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 // POST request
 app.post('/api/register', async (req, res) => {

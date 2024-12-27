@@ -43,6 +43,143 @@ export async function handler(req, res, method) {
             }
         }
 
+        if (path === "/api/getPlans") {
+            try {
+                const plans = [];
+                const usersCollection = collection(db, "plans");
+                const usersSnapshot = await getDocs(usersCollection);
+                usersSnapshot.forEach((doc) => {
+                    plans.push(doc.data());
+                });
+                console.log(plans);
+
+                return { status: 200, data: plans };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching users" };
+            }
+        }
+
+        if (path === "/api/getPlaces") {
+            try {
+                const places = [];
+                const usersCollection = collection(db, "places");
+                const usersSnapshot = await getDocs(usersCollection);
+                usersSnapshot.forEach((doc) => {
+                    places.push(doc.data());
+                });
+                console.log(places);
+
+                return { status: 200, data: places };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching users" };
+            }
+        }
+
+        if (path === "/api/getReviews") {
+            try {
+                const reviews = [];
+                const usersCollection = collection(db, "reviews");
+                const usersSnapshot = await getDocs(usersCollection);
+                usersSnapshot.forEach((doc) => {
+                    reviews.push(doc.data());
+                });
+                console.log(reviews);
+
+                return { status: 200, data: reviews };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching users" };
+            }
+        }
+
+        if (path === "/api/gallery") {
+            try {
+                const gallery = [];
+                const usersCollection = collection(db, "gallery");
+                const usersSnapshot = await getDocs(usersCollection);
+                usersSnapshot.forEach((doc) => {
+                    gallery.push(doc.data());
+                });
+                console.log(gallery);
+
+                return { status: 200, data: gallery };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching users" };
+            }
+        }
+
+        if (path === "/api/getUserPlans/" + req.params.uid) {
+            try {
+                const uid = req.params.uid;
+                console.log("UID: ", uid);
+                if (!uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+
+                const data = { uid };
+                const userData = await getUserPlans(data);
+
+                if (!userData) {
+                    return { status: 404, message: "User not found" };
+                }
+
+                console.log(userData); // Check fetched user data
+                return { status: 200, data: userData };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching user data" };
+            }
+        }
+
+        if (path === "/api/getUserReviews/" + req.params.uid) {
+            try {
+                const uid = req.params.uid;
+                console.log("UID: ", uid);
+                if (!uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+
+                const data = { uid };
+                const userData = await getUserReviews(data);
+
+                if (!userData) {
+                    return { status: 404, message: "User not found" };
+                }
+
+                console.log(userData); // Check fetched user data
+                return { status: 200, data: userData };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching user data" };
+            }
+        }
+
+        if (path === "/api/getUserBookings/" + req.params.uid) {
+            try {
+                const uid = req.params.uid;
+                console.log("UID: ", uid);
+                if (!uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+
+                const data = { uid };
+                const userData = await getUserBookings(data);
+
+                if (!userData) {
+                    return { status: 404, message: "User not found" };
+                }
+
+                console.log(userData); // Check fetched user data
+                return { status: 200, data: userData };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error fetching user data" };
+            }
+        }
+
     }
     
 
@@ -159,4 +296,37 @@ export async function handler(req, res, method) {
             }
         }
     }
+
+    // Handle DELETE requests
+    if (method === "DELETE") {
+        if (path === '/api/deleteUser') {
+            try {
+                const data = req.body;
+                if (!data || !data.uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+                await deleteUser(data);
+                return { status: 200, message: "User deleted" };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error deleting user" };
+            }
+        }
+
+        if (path === '/api/deleteReview') {
+            try {
+                const data = req.body;
+                if (!data || !data.uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+                await deleteReview(data);
+                return { status: 200, message: "User plan deleted" };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error deleting user Review" };
+            }
+        }
+    }
+
+    return { status: 404, message: "Invalid path" };
 }
