@@ -56,7 +56,7 @@ export default function RotatingEarth({ onLoaded }) {
   }, [api]);
 
   return (
-    <div className="relative w-svw h-svh bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="relative w-svw h-svh bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <div
         style={{
           position: "absolute",
@@ -98,7 +98,7 @@ export default function RotatingEarth({ onLoaded }) {
           speed={1.5}
         />
         <OrbitControls enableZoom={false} enableRotate={false} />
-        <EffectComposer>
+        {/* <EffectComposer>
           <Bloom
             luminanceThreshold={0.1}
             luminanceSmoothing={1.8}
@@ -107,7 +107,7 @@ export default function RotatingEarth({ onLoaded }) {
             intensity={0.5}
             selection={["earth"]}
           />
-        </EffectComposer>
+        </EffectComposer> */}
       </Canvas>
     </div>
   );
