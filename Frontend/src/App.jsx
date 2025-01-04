@@ -8,6 +8,7 @@ import Login from "./pages/Login"
 import Register from "./pages/Register" 
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
+import Itinerary from "./pages/Itinerary"
 const App = () => {
   return (
     <div>
@@ -22,6 +23,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/itinerary" element={<Itinerary />} />
 
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
