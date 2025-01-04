@@ -80,7 +80,7 @@ export async function handler(req, res, method) {
         if (path === "/api/getReviews") {
             try {
                 const reviews = [];
-                const usersCollection = collection(db, "reviews");
+                const usersCollection = collection(db, "review");
                 const usersSnapshot = await getDocs(usersCollection);
                 usersSnapshot.forEach((doc) => {
                     reviews.push(doc.data());

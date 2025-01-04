@@ -1,31 +1,62 @@
+import { useEffect, useState } from "react";
+import axios from "axios"; // Import Axios
 import Navbar from "../components/Navbar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 
-const reviewsData = [
-  {
-    name: "Alice Johnson",
-    review: "The Mountain Explorer trip was absolutely breathtaking! The guides were knowledgeable and the views were stunning.",
-    rating: 5,
-  },
-  {
-    name: "Mark Smith",
-    review: "I had an amazing time in the Coastal Paradise package. The beaches were pristine and the snorkeling was unforgettable!",
-    rating: 4,
-  },
-  {
-    name: "Emily Davis",
-    review: "The Cultural Odyssey was a fantastic experience. I learned so much about the local culture and history.",
-    rating: 5,
-  },
-  {
-    name: "John Doe",
-    review: "Great service and well-organized trips. I would definitely recommend this travel planner to my friends!",
-    rating: 4,
-  },
-];
-
 const Reviews = () => {
+  const [reviewsData, setReviewsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetch reviews data from the API using Axios
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get("https://travel-o-backend.vercel.app/get-reviews");
+        console.log("API Response:", response.data.data); // Debugging: Log the API response
+
+        // Ensure the response data is an array
+        if (Array.isArray(response.data.data)) {
+          setReviewsData(response.data.data);
+        } else {
+          throw new Error("API response is not an array");
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 flex items-center justify-center text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
+
+  // Ensure reviewsData is an array before mapping
+  if (!Array.isArray(reviewsData)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 flex items-center justify-center text-red-500">
+        Error: Invalid data format received from the API
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <Navbar />
@@ -39,7 +70,10 @@ const Reviews = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {reviewsData.map((review, index) => (
-            <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm">
+            <Card
+              key={index}
+              className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm"
+            >
               <CardHeader>
                 <CardTitle className="text-xl text-white">{review.name}</CardTitle>
               </CardHeader>
@@ -47,7 +81,10 @@ const Reviews = () => {
                 <CardDescription className="text-slate-400">{review.review}</CardDescription>
                 <div className="flex items-center mt-2">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-slate-400'}`} />
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < review.rating ? "text-yellow-400" : "text-slate-400"}`}
+                    />
                   ))}
                 </div>
               </CardContent>

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from "../components/Navbar";
-import { Mountain, Sun, Globe, Landmark, Building, Camera, Waves, Castle, Shell, TreePalm, Trees, Amphora, Hourglass } from "lucide-react";
+import { Loader, Mountain, Sun, Globe, Landmark, Building, Camera, Waves, Castle, Shell, TreePalm, Trees, Amphora, Hourglass } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { motion } from 'framer-motion';
+
 
 // Icon mapping object
 const iconMap = {
@@ -55,24 +57,49 @@ const Places = () => {
     return IconComponent ? <IconComponent className="w-8 h-8 text-blue-400" /> : null;
   };
 
-  if (isLoading) {
-    return <div className="text-white text-center py-8">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-400 text-center py-8">{error}</div>;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <Navbar />
-      <div className="container mx-auto py-16 px-4">
+      <div className="container mx-auto py-20 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Explore Amazing Places</h1>
           <p className="text-slate-300 max-w-2xl mx-auto">
             Discover unique travel experiences and plan your next adventure.
           </p>
         </div>
+        {isLoading && (
+          <motion.div
+            className="loader-container flex flex-col items-center justify-center p-8 rounded-lg"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Loader className="w-12 h-12 text-white" />
+            </motion.div>
+            <motion.p
+              className="text-white text-center mt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
+              Loading...
+            </motion.p>
+          </motion.div>
+        )}
+        {error && (
+          <motion.div
+            className="error-message"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="text-red-400 text-center py-8">{error}</p>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {places.map((place, index) => (
@@ -82,9 +109,9 @@ const Places = () => {
                   <div className="p-2 bg-slate-800 rounded-lg">
                     {getIconComponent(place.icon)}
                   </div>
-                  <Badge className="bg-blue-600 text-white rounded-full px-3 py-1 text-sm font-semibold hover:bg-blue-700 transition duration-200">
-                    {place.badge}
-                  </Badge>
+                  <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 hover:bg-blue-500/20">
+                      {place.badge}
+                    </Badge>
                 </div>
                 <CardTitle className="text-xl text-white mt-4">{place.title}</CardTitle>
                 <CardDescription className="text-slate-400">{place.description}</CardDescription>
@@ -116,7 +143,7 @@ const Places = () => {
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                   size="lg"
                 >
-                  View More
+                  Show Plans
                 </Button>
               </CardFooter>
             </Card>
