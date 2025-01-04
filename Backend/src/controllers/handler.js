@@ -222,7 +222,34 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error logging in" };
             }
         }
-
+        if (path === '/api/add-place') {
+            try {
+                const placeData = req.body; // Get data from the request body
+                
+                // Validate the data
+                if (!placeData.title || !placeData.description) {
+                    return res.status(400).json({ error: "Title and description are required." });
+                }
+        
+                // Add data to Firestore
+                const placeId = placeData.placeId; // Get the placeID from the data
+                const docRef = doc(db, "places", placeId);
+        
+                // Save data in Firestore
+                await setDoc(docRef, placeData);
+        
+                // Send the success response
+                return res.status(201).json({
+                    message: "Place added successfully!",
+                    id: placeId, // Return the provided placeId
+                });
+            } catch (error) {
+                console.error("Error adding place:", error);
+        
+                // Send error response
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+        }
         if (path === '/api/forgot-password') {
             try {
                 const data = req.body;
