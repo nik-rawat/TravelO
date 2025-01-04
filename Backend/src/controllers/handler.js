@@ -222,31 +222,53 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error logging in" };
             }
         }
+        if (path === '/api/add-plans') {
+            try {
+                const planData = req.body; 
+                
+                // Check if required fields are provided
+                if (!planData.title || !planData.description || !planData.price) {
+                    return res.status(400).json({ error: "Title, description, and price are required." });
+                }
+    
+                const planId = planData.planId; // Get the placeID from the data
+                const docRef = doc(db, "plans", planId);
+                
+                await setDoc(docRef, planData);
+        
+            
+                return res.status(201).json({
+                    message: "Plan added successfully!",
+                    id: planId, 
+                });
+            } catch (error) {
+                console.error("Error adding plan:", error);
+                return res.status(500).json({ error: "Internal Server Error" });
+            }
+        }
+        
         if (path === '/api/add-place') {
             try {
-                const placeData = req.body; // Get data from the request body
-                
-                // Validate the data
+                const placeData = req.body; 
                 if (!placeData.title || !placeData.description) {
                     return res.status(400).json({ error: "Title and description are required." });
                 }
         
-                // Add data to Firestore
-                const placeId = placeData.placeId; // Get the placeID from the data
+                
+                const placeId = placeData.placeId; 
                 const docRef = doc(db, "places", placeId);
         
-                // Save data in Firestore
+             
                 await setDoc(docRef, placeData);
         
-                // Send the success response
+                
                 return res.status(201).json({
                     message: "Place added successfully!",
-                    id: placeId, // Return the provided placeId
+                    id: placeId, 
                 });
             } catch (error) {
                 console.error("Error adding place:", error);
-        
-                // Send error response
+    
                 return res.status(500).json({ error: "Internal Server Error" });
             }
         }
