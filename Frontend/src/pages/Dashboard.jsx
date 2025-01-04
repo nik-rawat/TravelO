@@ -199,7 +199,7 @@ const Dashboard = () => {
   // Rest of the loading and error states remain the same...
   if (isLoading && !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900 flex items-center justify-center p-4">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="w-32 h-32 md:w-48 md:h-48 bg-slate-700 rounded-full"></div>
           <div className="h-8 w-48 md:w-64 bg-slate-700 rounded"></div>

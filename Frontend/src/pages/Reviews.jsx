@@ -27,7 +27,7 @@ const reviewsData = [
 
 const Reviews = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <Navbar />
       <div className="container mx-auto py-16 px-4">
         <div className="text-center mb-12">
