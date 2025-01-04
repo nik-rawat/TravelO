@@ -218,6 +218,15 @@ app.post('/api/add-place', async (req, res) => {
   }
 }
  );
+ app.post('/api/add-plans',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+ })
 
 // Start the server
 app.listen(PORT, () => {
