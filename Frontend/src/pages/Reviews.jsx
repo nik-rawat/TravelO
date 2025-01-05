@@ -13,7 +13,7 @@ const Reviews = () => {
     // Fetch reviews data from the API using Axios
     const fetchReviews = async () => {
       try {
-        const response = await axios.get("https://travel-o-backend.vercel.app/get-reviews");
+        const response = await axios.get("https://travel-o-backend.vercel.app/api/getReviews");
         console.log("API Response:", response.data.data); // Debugging: Log the API response
 
         // Ensure the response data is an array

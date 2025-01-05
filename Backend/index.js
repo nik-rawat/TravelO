@@ -217,8 +217,8 @@ app.post('/api/add-place', async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 }
- );
- app.post('/api/add-plans',async(req,res)=>{
+);
+app.post('/api/add-plan',async(req,res)=>{
   try {
     const result = await handler(req, res, "POST");
     res.status(200).json(result);
@@ -226,8 +226,67 @@ app.post('/api/add-place', async (req, res) => {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
- })
+})
 
+app.get('/api/getPlan/:planId',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.post('/api/add-review',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.post('/api/add-itinerary',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.put('/api/book-itinerary',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "PUT");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.put('/api/complete-itinerary',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "PUT");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.get('/api/getItinerary/:uid',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

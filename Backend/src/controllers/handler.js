@@ -3,7 +3,7 @@ import { URL } from 'url';
 import { register, googleSignIn, login, forgotPassword, registerWithAuth } from "./authController.js";
 // import { authenticate } from "./authMiddleware.js";
 import { upload_audio, upload_img } from "./lib/upload.js";
-import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc } from "firebase/firestore";
+import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc, query, where } from "firebase/firestore";
 import { db } from "./lib/firebase.js"; // Import db from Firebase initialization
 import { promisify } from "util";
 import fs from "fs";
@@ -180,6 +180,55 @@ export async function handler(req, res, method) {
             }
         }
 
+        if (path === "/api/getItinerary/" + req.params.uid) {
+            try {
+                const uid = req.params.uid;
+                console.log("UID: ", uid);
+        
+                // Validate UID
+                if (!uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+        
+                // Fetch user data from Firestore (or any other source)
+                const q = query(collection(db, "itinerary"), where("uid", "==", uid));
+                const querySnapshot = await getDocs(q);
+                const userData = [];
+                querySnapshot.forEach((doc) => {
+                    userData.push(doc.data());
+                });
+                
+                console.log("Fetched User Data:", userData); // Log fetched data
+        
+                // Return success response with user data
+                return { status: 200, data: userData };
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+                return { status: 500, message: "Error fetching user data" };
+            }
+        }
+
+        if (path === "/api/getPlan/" + req.params.planId) {
+            try {
+                const planId = req.params.planId;
+                console.log("Plan ID: ", planId);
+                if (!planId) {
+                    return { status: 400, message: "Missing planId parameter" };
+                }
+                const docRef = doc(db, "plans", planId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    return { status: 404, message: "Plan not found" };
+                }
+                const planData = docSnap.data();
+                console.log("Fetched Plan Data:", planData);
+                return { status: 200, data: planData };
+            } catch (err) {
+                console.error("Error fetching plan data:", err);
+                return { status: 500, message: "Error fetching plan data" };
+            }
+        }
+
     }
     
 
@@ -222,28 +271,20 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error logging in" };
             }
         }
-        if (path === '/api/add-plans') {
+        if (path === '/api/add-plan') {
             try {
                 const planData = req.body; 
-                
                 // Check if required fields are provided
                 if (!planData.title || !planData.description || !planData.price) {
-                    return res.status(400).json({ error: "Title, description, and price are required." });
+                    return { status: 400, error: "Title, description, and price are required." };
                 }
-    
                 const planId = planData.planId; // Get the placeID from the data
                 const docRef = doc(db, "plans", planId);
-                
                 await setDoc(docRef, planData);
-        
-            
-                return res.status(201).json({
-                    message: "Plan added successfully!",
-                    id: planId, 
-                });
+                return { status: 200, message: "Plan added successfully!", id: planId };
             } catch (error) {
                 console.error("Error adding plan:", error);
-                return res.status(500).json({ error: "Internal Server Error" });
+                return { status: 500, error: "Internal Server Error" };
             }
         }
         
@@ -251,25 +292,58 @@ export async function handler(req, res, method) {
             try {
                 const placeData = req.body; 
                 if (!placeData.title || !placeData.description) {
-                    return res.status(400).json({ error: "Title and description are required." });
+                    return { status: 400, error: "Title and description are required." };
                 }
-        
-                
                 const placeId = placeData.placeId; 
                 const docRef = doc(db, "places", placeId);
-        
-             
                 await setDoc(docRef, placeData);
-        
-                
-                return res.status(201).json({
+                return { status: 201,
                     message: "Place added successfully!",
                     id: placeId, 
-                });
+                };
             } catch (error) {
                 console.error("Error adding place:", error);
-    
-                return res.status(500).json({ error: "Internal Server Error" });
+                return { status: 500, error: "Internal Server Error" };
+            }
+        }
+        if (path === '/api/add-review') {
+            try {
+                const reviewData = req.body; 
+                if (!reviewData.review) {
+                    return { status: 400, error: "review is required." };
+                }
+                const reviewId = reviewData.reviewId; 
+                const docRef = doc(db, "review", reviewId);
+                await setDoc(docRef, reviewData);
+                return { status: 201,
+                    message: "review added successfully!",
+                    id: placeId, 
+                };
+            } catch (error) {
+                console.error("Error adding place:", error);
+                return { status: 500, error: "Internal Server Error" };
+            }
+        }
+        if (path === '/api/add-itinerary') {
+            try {
+                const { uid, planId, } = req.body;
+                const itineraryData = {
+                    uid,
+                    planId,
+                    status: "selected"
+                }
+                const itineraryId = itineraryData.uid + itineraryData.planId;
+                const docRef = doc(db, "itinerary", itineraryId);
+                const docSnapshot = await getDoc(docRef);
+                if (docSnapshot.exists()) {
+                    return { status: 400, error: "Itinerary already exists" };
+                }
+
+                await setDoc(docRef, itineraryData);
+                return { status: 201, message: "Itinerary scheduled successfully!", id: itineraryId,}
+            } catch (error) {
+                console.error("Error scheduling itinerary:", error);
+                return { status: 500, error: "Internal Server Error" };
             }
         }
         if (path === '/api/forgot-password') {
@@ -342,6 +416,53 @@ export async function handler(req, res, method) {
             } catch (err) {
                 console.error(err);
                 return { status: 500, message: "Error updating user" };
+            }
+        }
+
+        if (path === '/api/book-itinerary') {
+            try {
+                const { uid, planId, scheduled, duration, personCount, totalAmount } = req.body;
+                const itineraryData = {
+                    uid,
+                    planId,
+                    scheduled,
+                    duration,
+                    personCount,
+                    totalAmount,
+                    createdAt: new Date().toISOString(),
+                    status: "ongoing"
+                }
+                const itineraryId = itineraryData.uid + itineraryData.planId;
+                const docRef = doc(db, "itinerary", itineraryId);
+                await setDoc(docRef, itineraryData);
+                return { status: 200, 
+                    message: "Itinerary scheduled successfully!",
+                    id: itineraryId,
+                };
+            } catch (error) {
+                console.error("Error scheduling itinerary:", error);
+                return { status: 500, error: "Internal Server Error" };
+            }
+        }
+
+        if (path === '/api/complete-itinerary') {
+            try {
+                const { uid, planId } = req.body;
+                const itineraryId = uid + planId;
+                const docRef = doc(db, "itinerary", itineraryId);
+                const docSnapshot = await getDoc(docRef);
+                if (!docSnapshot.exists()) {
+                    return { status: 404, error: "Itinerary not found" };
+                }
+                await updateDoc(docRef, { status: "completed" });
+
+                return { status: 200, 
+                    message: "Itinerary completion successfully!",
+                    id: itineraryId,
+                };
+            } catch (error) {
+                console.error("Error completing itinerary:", error);
+                return { status: 500, error: "Internal Server Error" };
             }
         }
     }
