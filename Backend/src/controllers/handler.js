@@ -3,7 +3,7 @@ import { URL } from 'url';
 import { register, googleSignIn, login, forgotPassword, registerWithAuth } from "./authController.js";
 // import { authenticate } from "./authMiddleware.js";
 import { upload_audio, upload_img } from "./lib/upload.js";
-import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc, query, where } from "firebase/firestore";
+import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc, query, where, deleteDoc } from "firebase/firestore";
 import { db } from "./lib/firebase.js"; // Import db from Firebase initialization
 import { promisify } from "util";
 import fs from "fs";
@@ -494,6 +494,19 @@ export async function handler(req, res, method) {
             } catch (err) {
                 console.error(err);
                 return { status: 500, message: "Error deleting user Review" };
+            }
+        }
+
+        if (path === '/api/remove-itinerary') {
+            try {
+                const { uid, planId } = req.body;
+                const itineraryId = uid + planId;
+                const docRef = doc(db, "itinerary", itineraryId);
+                await deleteDoc(docRef);
+                return { status: 200, message: "Itinerary removed successfully!" };
+            } catch (error) {
+                console.error("Error removing itinerary:", error);
+                return { status: 500, error: "Internal Server Error" };
             }
         }
     }

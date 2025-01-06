@@ -258,6 +258,16 @@ app.post('/api/add-itinerary',async(req,res)=>{
   }
 })
 
+app.delete('/api/remove-itinerary',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "DELETE");
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
 app.put('/api/book-itinerary',async(req,res)=>{
   try {
     const result = await handler(req, res, "PUT");
