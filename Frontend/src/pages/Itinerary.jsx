@@ -1,226 +1,284 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
-import Navbar from '../components/Navbar';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+const LoadingSpinner = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="flex flex-col items-center justify-center p-8"
+  >
+    <motion.div
+      animate={{
+        rotate: 360,
+        scale: [1, 1.2, 1],
+      }}
+      transition={{
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "linear",
+      }}
+    >
+      <Loader className="w-12 h-12 text-blue-500" />
+    </motion.div>
+    <motion.p
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="mt-4 text-white text-lg"
+    >
+      Loading your itineraries...
+    </motion.p>
+  </motion.div>
+);
+
+const ErrorMessage = ({ message }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mx-auto max-w-md"
+  >
+    <motion.p className="text-red-500 text-lg font-semibold">{message}</motion.p>
+  </motion.div>
+);
+
+const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => (
+  <motion.div
+    className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 p-4 rounded-lg shadow-md"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <CardHeader>
+      <CardTitle className="text-xl text-white">{detailedPlans[plan.planId]?.title || "Loading..."}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-slate-400">{detailedPlans[plan.planId]?.description || "Loading..."}</p>
+    </CardContent>
+    <CardFooter className="flex justify-between gap-4">{buttonActions(plan)}</CardFooter>
+  </motion.div>
+);
 
 const ItineraryList = () => {
-    const [itineraryData, setItineraryData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [detailedPlans, setDetailedPlans] = useState({}); // State to store detailed plan data
+  const [itineraryData, setItineraryData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [detailedPlans, setDetailedPlans] = useState({});
+  const [personCounts, setPersonCounts] = useState({}); 
+  const [durations, setDurations] = useState({});
+  const [scheduleDates, setScheduleDates] = useState({});
+  const uid = useSelector((state) => state.auth.uid);
 
-    // Retrieve uid from Redux state
-    const uid = useSelector((state) => state.auth.uid); // Adjust based on your Redux state structure
-
-    // Fetch itinerary data from the backend
-    useEffect(() => {
-        const fetchItineraryData = async () => {
-            try {
-                const response = await axios.get(`https://travel-o-backend.vercel.app/api/getItinerary/${uid}`);
-                if (response.status === 200) {
-                    setItineraryData(response.data.data);
-                    fetchDetailedPlans(response.data.data); // Fetch detailed data for each plan
-                } else {
-                    setError("Failed to fetch itinerary data");
-                }
-            } catch (err) {
-                console.error("Error fetching itinerary data:", err);
-                setError("Error fetching itinerary data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (uid) {
-            fetchItineraryData();
+  useEffect(() => {
+    const fetchItineraryData = async () => {
+      try {
+        const response = await axios.get(`https://travel-o-backend.vercel.app/api/getItinerary/${uid}`);
+        if (response.status === 200) {
+          setItineraryData(response.data.data);
+          fetchDetailedPlans(response.data.data);
         }
-    }, [uid]);
-
-    // Fetch detailed plan data for each planId
-    const fetchDetailedPlans = async (plans) => {
-        const detailedPlansData = {};
-        for (const plan of plans) {
-            try {
-                const response = await axios.get(`https://travel-o-backend.vercel.app/api/getPlan/${plan.planId}`);
-                if (response.status === 200) {
-                    detailedPlansData[plan.planId] = response.data;
-                }
-            } catch (err) {
-                console.error(`Error fetching detailed plan data for planId ${plan.planId}:`, err);
-            }
-        }
-        setDetailedPlans(detailedPlansData);
+      } catch (err) {
+        setError("Error fetching itinerary data");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const selectedPlans = itineraryData.filter((plan) => plan.status === "selected");
-    const ongoingPlans = itineraryData.filter((plan) => plan.status === "ongoing");
-    const previousPlans = itineraryData.filter((plan) => plan.status === "completed");
+    if (uid) {
+      fetchItineraryData();
+    }
+  }, [uid]);
 
-    // Placeholder functions for button actions
-    const handleSchedule = (planId) => {
-        console.log("Schedule plan:", planId);
-    };
+  const fetchDetailedPlans = async (plans) => {
+    const detailedPlansData = {};
+    for (const plan of plans) {
+      try {
+        const response = await axios.get(`https://travel-o-backend.vercel.app/api/getPlan/${plan.planId}`);
+        detailedPlansData[plan.planId] = response.data.data;
+      } catch (err) {
+        console.error(`Error fetching detailed plan data for planId ${plan.planId}:`, err);
+      }
+    }
+    setDetailedPlans(detailedPlansData);
+  };
 
-    const removePlan = (planId) => {
-        console.log("Remove plan:", planId);
-    };
+  const handleCompleteItinerary = (planId) => {
+    console.log(`Completing itinerary: ${planId}`);
+    // Implement logic to mark the itinerary as completed
+  };
 
-    const markAsOngoing = (planId) => {
-        console.log("Mark as ongoing:", planId);
-    };
+  const handleGiveReview = (planId) => {
+    console.log(`Giving review for planId: ${planId}`);
+    // Implement logic to open review form
+  };
 
-    const markAsCompleted = (planId) => {
-        console.log("Mark as completed:", planId);
-    };
+  const handleBook = (planId) => {
+    console.log(`Booking itinerary: ${planId}`);
+    // Implement booking logic here
+  };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
-            <Navbar />
-            <div className="container mx-auto py-16 px-4">
-                <h1 className="text-4xl font-bold text-white mb-8 text-center">Your Itinerary</h1>
+  const handleRemovePlan = (planId) => {
+    console.log(`Removing planId: ${planId}`);
+    // Implement removal logic here
+  };
 
-                {loading && (
-                    <motion.div
-                        className="loader-container flex flex-col items-center justify-center p-8 rounded-lg"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <motion.div
-                            animate={{ rotate: 360, scale: [1, 1, 2, 1] }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                            <Loader className="w-12 h-12 text-white" />
-                        </motion.div>
-                        <motion.p
-                            className="text-white text-center mt-4"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5, duration: 0.5 }}
-                        >
-                            Loading...
-                        </motion.p>
-                    </motion.div>
-                )}
-                {error && (
-                    <motion.div
-                        className="error-message"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <p className="text-red-400 text-center py-8">{error}</p>
-                    </motion.div>
-                )}
+  const categorizedPlans = {
+    selected: itineraryData.filter((plan) => plan.status === "selected"),
+    ongoing: itineraryData.filter((plan) => plan.status === "ongoing"),
+    previous: itineraryData.filter((plan) => plan.status === "completed"),
+  };
 
-                {/* Selected Plans Section */}
-                <h2 className="text-2xl font-bold text-white mb-6">Selected Plans</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {selectedPlans.map((plan) => (
-                        <Card key={plan.planId} className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm">
-                            <CardHeader>
-                                <CardTitle className="text-xl text-white">Plan ID: {plan.planId}</CardTitle>
-                                <CardDescription className="text-slate-400">Status: {plan.status}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="text-slate-300">
-                                        <p><strong>Title:</strong> {detailedPlans[plan.planId]?.title || "Loading..."}</p>
-                                        <p><strong>Location:</strong> {detailedPlans[plan.planId]?.location || "Loading..."}</p>
-                                        <p><strong>Duration:</strong> {detailedPlans[plan.planId]?.duration || "Loading..."}</p>
-                                        <p><strong>Price:</strong> {detailedPlans[plan.planId]?.price || "Loading..."}</p>
-                                        <p><strong>Description:</strong> {detailedPlans[plan.planId]?.description || "Loading..."}</p>
-                                        <p><strong>Features:</strong> {detailedPlans[plan.planId]?.features.join(", ") || "Loading..."}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex justify-between items-center">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
+      <Navbar />
+      <div className="container mx-auto py-16 px-4">
+        <motion.h1 className="text-4xl font-bold text-white mb-8 text-center">Your Itineraries</motion.h1>
+        <AnimatePresence>
+          {loading && <LoadingSpinner />}
+          {error && <ErrorMessage message={error} />}
+        </AnimatePresence>
+
+        {["selected", "ongoing", "previous"].map((category) => (
+          <div key={category} className="mb-12">
+            <motion.h2 className="text-2xl text-white mb-4 capitalize">{category} itineraries</motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {categorizedPlans[category].map((plan, index) => (
+                <ItineraryCard
+                  key={plan.planId}
+                  className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 shadow-md rounded-lg"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  plan={plan}
+                  detailedPlans={detailedPlans}
+                  buttonActions={(currentPlan) =>
+                    category === "selected" ? (
+                      <>
+                        <div className="flex flex-col gap-4 mt-4">
+                          <div className="flex items-center gap-4">
+                            <span className="text-white">Persons:</span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={() => handlePersonCount(currentPlan.planId, false)}
+                                className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                              >
+                                -
+                              </Button>
+                              <motion.span
+                                key={personCounts[currentPlan.planId]}
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                className="text-white"
+                              >
+                                {personCounts[currentPlan.planId] || 1}
+                              </motion.span>
+                              <Button
+                                onClick={() => handlePersonCount(currentPlan.planId, true)}
+                                className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                                disabled={(personCounts[currentPlan.planId] || 1) >= (detailedPlans[currentPlan.planId]?.maxGroup || 1)}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <span className="text-white">Duration (days):</span>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={() => handleDuration(currentPlan.planId, false)}
+                                className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                              >
+                                -
+                              </Button>
+                              <motion.span
+                                key={durations[currentPlan.planId]}
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                className="text-white"
+                              >
+                                {durations[currentPlan.planId] || 1}
+                              </motion.span>
+                              <Button
+                                onClick={() => handleDuration(currentPlan.planId, true)}
+                                className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                              >
+                                +
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <Button
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:bg-blue-600 text-white"
-                                    onClick={() => handleSchedule(plan.planId)}
+                                  variant="outline"
+                                  className="w-full justify-start text-left font-normal text-gray-800"
                                 >
-                                    Schedule
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {scheduleDates[currentPlan.planId]
+                                    ? format(scheduleDates[currentPlan.planId], "PPP")
+                                    : "Pick a date"}
                                 </Button>
-                                <Button
-                                    className="bg-gradient-to-r from-red-500 to-red-600 hover:bg-red-600 text-white"
-                                    onClick={() => removePlan(plan.planId)}
-                                >
-                                    Remove
-                                </Button>
-                                <Button
-                                    className="bg-gradient-to-r from-green-500 to-green-600 hover:bg-green-600 text-white"
-                                    onClick={() => markAsOngoing(plan.planId)}
-                                >
-                                    Start Plan
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                  mode="single"
+                                  selected={scheduleDates[currentPlan.planId]}
+                                  onSelect={(date) => handleDateSelect(currentPlan.planId, date)}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
 
-                {/* Ongoing Plans Section */}
-                <h2 className="text-2xl font-bold text-white mt-12 mb-6">Ongoing Plans</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {ongoingPlans.map((plan) => (
-                        <Card key={plan.planId} className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm">
-                            <CardHeader>
-                                <CardTitle className="text-xl text-white">Plan ID: {plan.planId}</CardTitle>
-                                <CardDescription className="text-slate-400">Status: {plan.status}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="text-slate-300">
-                                        <p><strong>Title:</strong> {detailedPlans[plan.planId]?.title || "Loading..."}</p>
-                                        <p><strong>Location:</strong> {detailedPlans[plan.planId]?.location || "Loading..."}</p>
-                                        <p><strong>Duration:</strong></p>                                     <p><strong>Duration:</strong> {detailedPlans[plan.planId]?.duration || "Loading..."}</p>
-                                        <p><strong>Price:</strong> {detailedPlans[plan.planId]?.price || "Loading..."}</p>
-                                        <p><strong>Description:</strong> {detailedPlans[plan.planId]?.description || "Loading..."}</p>
-                                        <p><strong>Features:</strong> {detailedPlans[plan.planId]?.features.join(", ") || "Loading..."}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex justify-between items-center">
-                                <Button
-                                    className="bg-green-500 hover:bg-green-600 text-white"
-                                    onClick={() => markAsCompleted(plan.planId)}
-                                >
-                                    Complete Plan
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-
-                {/* Previous Plans Section */}
-                <h2 className="text-2xl font-bold text-white mt-12 mb-6">Previous Plans</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {previousPlans.map((plan) => (
-                        <Card key={plan.planId} className="group hover:shadow-xl transition-all duration-300 border-slate-200/20 bg-slate-900/50 backdrop-blur-sm">
-                            <CardHeader>
-                                <CardTitle className="text-xl text-white">Plan ID: {plan.planId} - Completed</CardTitle>
-                                <CardDescription className="text-slate-400">Status: {plan.status}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="text-slate-300">
-                                        <p><strong>Title:</strong> {detailedPlans[plan.planId]?.title || "Loading..."}</p>
-                                        <p><strong>Location:</strong> {detailedPlans[plan.planId]?.location || "Loading..."}</p>
-                                        <p><strong>Duration:</strong> {detailedPlans[plan.planId]?.duration || "Loading..."}</p>
-                                        <p><strong>Price:</strong> {detailedPlans[plan.planId]?.price || "Loading..."}</p>
-                                        <p><strong>Description:</strong> {detailedPlans[plan.planId]?.description || "Loading..."}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                          <div className="flex justify-between gap-4">
+                            <Button
+                              className="w-1/2 bg-red-500 hover:bg-red-600"
+                              onClick={() => handleRemovePlan(currentPlan.planId)}
+                            >
+                              Remove
+                            </Button>
+                            <Button
+                              className="w-1/2 bg-green-500 hover:bg-green-600"
+                              onClick={() => handleBook(currentPlan.planId)}
+                            >
+                              Book
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    ) : category === "ongoing" ? (
+                      <Button className="bg-blue-500" onClick={() => handleCompleteItinerary(currentPlan.planId)}>
+                        Complete Itinerary
+                      </Button>
+                    ) : (
+                      <Button className="bg-yellow-800" onClick={() => handleGiveReview(currentPlan.planId)}>
+                        Give Review
+                      </Button>
+                    )
+                  }
+                />
+              ))}
             </div>
-        </div>
-    );
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default ItineraryList;

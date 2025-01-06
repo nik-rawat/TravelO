@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Plane, Waves, Mountain, Loader } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
+import { ToastContainer, toast } from "react-toastify"; // Import ToastContainer and toast
+import "react-toastify/dist/ReactToastify.css"; // Import the CSS
 
 // Icon mapping object
 const iconMap = {
@@ -14,22 +17,20 @@ const iconMap = {
   MapPin: MapPin,
   Users: Users,
   Plane: Plane,
-  Waves:Waves,
- 
+  Waves: Waves,
 };
 
 const Plans = () => {
+  const uid = useSelector((state) => state.auth.uid);
   const [plansData, setPlansData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
   useEffect(() => {
-    // Fetch plans data from the API using Axios
     const fetchPlans = async () => {
       try {
         const response = await axios.get("https://travel-o-backend.vercel.app/api/getPlans");
-        setPlansData(response.data.data); // Axios stores the response data in `response.data`
+        setPlansData(response.data.data);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -45,9 +46,51 @@ const Plans = () => {
     return IconComponent ? <IconComponent className="w-8 h-8 text-blue-400" /> : null;
   };
 
+  const handleAddItinerary = async (uid, planId) => {
+    try {
+      const response = await axios.post("https://travel-o-backend.vercel.app/api/add-itinerary", {
+        uid: uid,
+        planId: planId,
+      });
+
+      if (response.status === 200) {
+        toast.success("Itinerary added successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        toast.error("Failed to add itinerary. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    } catch (err) {
+      toast.error("Error adding itinerary. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <Navbar />
+      <ToastContainer /> {/* Add ToastContainer here */}
       <div className="container mx-auto py-16 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Discover Your Perfect Journey</h1>
@@ -55,7 +98,6 @@ const Plans = () => {
             Choose from our carefully curated travel experiences, each designed to create unforgettable memories
           </p>
         </div>
-
 
         {loading && (
           <motion.div
@@ -134,11 +176,12 @@ const Plans = () => {
                 </CardContent>
                 <CardFooter className="flex justify-between items-center">
                   <div className="text-white">
-                    <span className="text-3xl font-bold">{plan.price}</span>
+                    <span className="text-3xl font-bold">₹{plan.price}</span>
                     <span className="text-slate-400 ml-2">/ person</span>
                   </div>
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white" size="lg">
-                    Book Now
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white" size="lg"
+                    onClick={() => handleAddItinerary(uid, plan.planId)}>
+                    Add Now
                   </Button>
                 </CardFooter>
               </Card>
