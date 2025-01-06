@@ -224,9 +224,27 @@ const ItineraryList = () => {
     }
   };
 
-  const handleRemovePlan = (planId) => {
-    console.log(`Removing planId: ${planId}`);
-    // removal logic here
+  const handleRemovePlan = async (planId) => {
+    try {
+      const payload = {
+        uid: uid,
+        planId: planId,
+      };
+  
+      const response = await axios.delete(
+        "https://travel-o-backend.vercel.app/api/remove-itinerary",
+        { data: payload } // Correct way to pass payload in DELETE request
+      );
+  
+      if (response.status === 200) {
+        console.log("Removed successfully:", response.data);
+        window.location.reload();
+      } else {
+        console.error("Removal failed:", response.data);
+      }
+    } catch (error) {
+      console.error("Error removing itinerary:", error);
+    }
   };
 
   const categorizedPlans = {
