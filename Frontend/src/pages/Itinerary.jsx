@@ -233,7 +233,7 @@ const ItineraryList = () => {
   
       const response = await axios.delete(
         "https://travel-o-backend.vercel.app/api/remove-itinerary",
-        { data: payload } // Correct way to pass payload in DELETE request
+        { data: payload }
       );
   
       if (response.status === 200) {
