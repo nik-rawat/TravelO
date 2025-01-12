@@ -182,8 +182,11 @@ const ItineraryList = () => {
       );
   
       if (response.status === 200) {
-        console.log("Itinerary marked as completed:", response.data);
-        window.location.reload();
+        setItineraryData((prevData) =>
+          prevData.map((plan) =>
+            plan.planId === planId ? { ...plan, status: "completed" } : plan
+          )
+        );
       } else {
         console.error("Failed to mark itinerary as completed:", response.data);
       }
@@ -214,8 +217,11 @@ const ItineraryList = () => {
       );
   
       if (response.status === 200) {
-        console.log("Booking successful:", response.data);
-        window.location.reload();
+        setItineraryData((prevData) =>
+          prevData.map((plan) =>
+            plan.planId === planId ? { ...plan, status: "ongoing", scheduled: payload.scheduled } : plan
+          )
+        );
       } else {
         console.error("Booking failed:", response.data);
       }
@@ -237,8 +243,9 @@ const ItineraryList = () => {
       );
   
       if (response.status === 200) {
-        console.log("Removed successfully:", response.data);
-        window.location.reload();
+        setItineraryData((prevData) =>
+          prevData.filter((plan) => plan.planId !== planId)
+        );
       } else {
         console.error("Removal failed:", response.data);
       }
