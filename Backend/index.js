@@ -16,17 +16,17 @@ import cors from 'cors';
 
 // Import multer for file upload
 import multer from 'multer';
-// const storage = multer.memoryStorage();
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Specify the directory to save uploaded files
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // Use the original file name
-  }
-});
+const storage = multer.memoryStorage();
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'uploads/'); // Specify the directory to save uploaded files
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, file.originalname); // Use the original file name
+//   }
+// });
 const upload = multer({
-  storage: multer.memoryStorage(), // Store files in memory
+  storage, // Store files in memory
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
 });
 

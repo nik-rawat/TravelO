@@ -375,7 +375,6 @@ export async function handler(req, res, method) {
     if (method === "PUT") {
         if (path === '/api/updateAvatar') {
             try {
-                const readFile = fs.promises.readFile;
                 console.log(req.body);
                 console.log(req.file);
                 const file = req.file;
@@ -383,8 +382,7 @@ export async function handler(req, res, method) {
                     console.log('File not found');
                     return { status: 400, message: 'Missing file' };
                 }
-
-                const fileBuffer = await readFile(file.path);
+                const fileBuffer = file.buffer;
                 const metadata = {
                     contentType: file.mimetype,
                     filename: file.originalname,
