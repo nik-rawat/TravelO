@@ -369,6 +369,37 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error adding user" };
             }
         }
+
+        if (path === '/api/upload-gallery') {
+            try {
+                console.log(req.body);
+                console.log(req.file);
+                const file = req.file;
+                if (!file) {
+                    console.log('File not found');
+                    return { status: 400, message: 'Missing file' };
+                }
+                const fileBuffer = file.buffer;
+                const metadata = {
+                    contentType: file.mimetype,
+                    filename: file.originalname,
+                }
+                const { uid } = req.body; 
+                const dateString = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `${dateString}-${file.originalname}`;
+                const link = await upload_img(fileBuffer, file.originalname, metadata, "gallery", filename);
+                if (!req.body || !req.body.uid) {
+                    return { status: 400, message: "Missing uid parameter" };
+                }
+
+                const userDoc = doc(db, "users", uid); // Ensure UID is provided
+                // await updateDoc(userDoc, { avatar: avatar });
+                return { status: 200, message: "image uploaded", data: avatar };
+            } catch (err) {
+                console.error(err);
+                return { status: 500, message: "Error uploading avatar" };
+            }
+        }
     }
 
     // Handle PUT requests
@@ -387,12 +418,12 @@ export async function handler(req, res, method) {
                     contentType: file.mimetype,
                     filename: file.originalname,
                 }
-                const avatar = await upload_img(fileBuffer, file.originalname, metadata, "pfp");
+                const { uid } = req.body; 
+                const avatar = await upload_img(fileBuffer, file.originalname, metadata, "pfp", uid);
                 if (!req.body || !req.body.uid) {
                     return { status: 400, message: "Missing uid parameter" };
                 }
 
-                const { uid } = req.body; 
                 const userDoc = doc(db, "users", uid); // Ensure UID is provided
                 await updateDoc(userDoc, { avatar: avatar });
                 return { status: 200, message: "image uploaded", data: avatar };

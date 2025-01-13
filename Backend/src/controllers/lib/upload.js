@@ -2,9 +2,10 @@ import { storage } from "./firebase.js";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 // Upload image to firebase storage
-export const upload_img = async (fileBuffer, originalname, metadata, path) => {
-    const dateString = new Date().toISOString().replace(/[:.]/g, '-');
-    const storageRef = ref(storage, `${path}/${dateString}-${originalname}`);
+export const upload_img = async (fileBuffer, originalname, metadata, path, filename ) => {
+    // const dateString = new Date().toISOString().replace(/[:.]/g, '-');
+    // const storageRef = ref(storage, `${path}/${dateString}-${originalname}`);
+    const storageRef = ref(storage, `${path}/${filename}`);
 
     const uploadTask = uploadBytesResumable(storageRef, fileBuffer, metadata);
 
