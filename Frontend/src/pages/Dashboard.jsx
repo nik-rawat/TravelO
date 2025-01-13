@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit2, Save, X, Upload } from 'lucide-react';
+import { Edit2, Save, X, Upload, User } from 'lucide-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
@@ -17,8 +17,6 @@ const Dashboard = () => {
   const fileInputRef = useRef(null);
 
   const userId = useSelector((state) => state.auth.uid);
-    console.log(userId);
-//   const userId = 'QT0KSFMgcvZ8aD6SRGIYjtr8r953'; // hardcoded for demo purposes
   const url = `https://travel-o-backend.vercel.app/api/getUser/${userId}`;
   const updateUrl = `https://travel-o-backend.vercel.app/api/updateUser`;
   const avatarUrl = 'https://travel-o-backend.vercel.app/api/updateAvatar';
@@ -75,22 +73,25 @@ const Dashboard = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsLoading(true);
-    setError(null);
-
     const formData = new FormData();
     formData.append('avatar', file);
     formData.append('uid', userId);
 
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await axios.put(avatarUrl, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        onUploadProgress: (event) => {
+          const progress = Math.round((event.loaded * 100) / event.total);
+          console.log('Upload progress:', progress);
+        },
       });
 
       if (response.data) {
-        setUser(prev => ({ ...prev, avatar: response.data.avatar }));
+        setUser((prev) => ({ ...prev, avatar: response.data.avatar }));
       } else {
         throw new Error('Avatar update failed');
       }
@@ -237,12 +238,17 @@ const Dashboard = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 flex items-center justify-center">
         <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
             <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
-            <div className="relative group">
-                <img 
-                src={user.avatar} 
-                alt="User Avatar" 
-                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl transition-transform group-hover:scale-105" 
-                />
+              <div className="relative group">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar} // Convert the binary string to a data URL
+                    alt="User Avatar"
+                    className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <User className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl text-slate-400" />
+                )}
+
                 <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <input
                     type="file"

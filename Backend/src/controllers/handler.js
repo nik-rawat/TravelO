@@ -375,7 +375,7 @@ export async function handler(req, res, method) {
     if (method === "PUT") {
         if (path === '/api/updateAvatar') {
             try {
-                const readFile = promisify(fs.readFile);
+                const readFile = fs.promises.readFile;
                 console.log(req.body);
                 console.log(req.file);
                 const file = req.file;
@@ -397,7 +397,7 @@ export async function handler(req, res, method) {
                 const { uid } = req.body; 
                 const userDoc = doc(db, "users", uid); // Ensure UID is provided
                 await updateDoc(userDoc, { avatar: avatar });
-                return { status: 200, message: "image uploaded" };
+                return { status: 200, message: "image uploaded", data: avatar };
             } catch (err) {
                 console.error(err);
                 return { status: 500, message: "Error uploading avatar" };
