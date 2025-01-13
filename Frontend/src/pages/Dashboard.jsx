@@ -89,6 +89,7 @@ const Dashboard = () => {
           console.log('Upload progress:', progress);
         },
       });
+      console.log('Avatar update response:', response);
 
       if (response.data) {
         setUser((prev) => ({ ...prev, avatar: response.data.avatar }));

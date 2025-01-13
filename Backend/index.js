@@ -26,10 +26,8 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({
-  storage,
-  limits: {
-    fileSize: 5000000 // 5MB file size limit
-    },
+  storage: multer.memoryStorage(), // Store files in memory
+  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
 });
 
 const app = express();
