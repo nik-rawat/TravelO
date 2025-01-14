@@ -1,13 +1,10 @@
 import { addUser, getUser, updateUser } from "./userController.js";
 import { URL } from 'url';
-import { register, googleSignIn, login, forgotPassword, registerWithAuth } from "./authController.js";
+import { login, forgotPassword, registerWithAuth } from "./authController.js";
 // import { authenticate } from "./authMiddleware.js";
-import { upload_audio, upload_img } from "./lib/upload.js";
+import { upload_img } from "./lib/upload.js";
 import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc, query, where, deleteDoc } from "firebase/firestore";
 import { db } from "./lib/firebase.js"; // Import db from Firebase initialization
-import { promisify } from "util";
-import fs from "fs";
-
 
 export async function handler(req, res, method) {
     const url = new URL(req.url, 'http://example.com'); // or any other base URL
@@ -246,16 +243,6 @@ export async function handler(req, res, method) {
             }
         }
         
-        if (path === "/api/google-signin") {
-            try {
-            const userData = await googleSignIn();
-            console.log("Data of user signed in: ", userData);
-            return { status: 200, data: userData };
-            } catch (err) {
-                console.error(err);
-                return { status: 500, message: "Error in Google sign-in" };
-            }
-        }
 
         if (path === "/api/login") {
             try {
@@ -306,18 +293,45 @@ export async function handler(req, res, method) {
                 return { status: 500, error: "Internal Server Error" };
             }
         }
+
         if (path === '/api/add-review') {
             try {
-                const reviewData = req.body; 
-                if (!reviewData.review) {
+                console.log(req.body);
+                console.log(req.file);
+                const file = req.file;
+                const { uid, name, planId, review, rating } = req.body;
+                if (!file) {
+                    console.log('File not found');
+                    return { status: 400, message: 'Missing file' };
+                }
+                if (!review) {
                     return { status: 400, error: "review is required." };
                 }
-                const reviewId = reviewData.reviewId; 
+                const fileBuffer = file.buffer;
+                const metadata = {
+                    contentType: file.mimetype,
+                    filename: file.originalname,
+                }
+                const dateString = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `${uid}-${planId}-${dateString}`;
+                const image = await upload_img(fileBuffer, file.originalname, metadata, "gallery", filename);
+
+                const reviewId = `${uid}-${planId}-${dateString}`; 
                 const docRef = doc(db, "review", reviewId);
+                const reviewData = {
+                    reviewId,
+                    uid,
+                    name,
+                    planId,
+                    review,
+                    rating,
+                    image,
+                    createdAt: new Date().toISOString(),
+                }; 
                 await setDoc(docRef, reviewData);
                 return { status: 201,
                     message: "review added successfully!",
-                    id: placeId, 
+                    id: reviewId, 
                 };
             } catch (error) {
                 console.error("Error adding place:", error);

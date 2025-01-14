@@ -57,30 +57,6 @@ export const register = async (data) => {
     }
 }
 
-
-export const googleSignIn = async () => {
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        console.log(user);
-        const userData = {
-            username: user.displayName,
-            email: user.email,
-            uid: user.uid,
-            age: null,
-            fname: user.displayName,
-            lname: null,
-            gender: null,
-            occupation: null,
-            registeredOn: new Date(),
-            avatar: user.photoURL
-        }
-        return addUser(userData);
-    } catch (error) {
-        console.log(error);
-    }
-}
-
 // User login
 export const login = async (data) => {
     const {email, password} = data;
