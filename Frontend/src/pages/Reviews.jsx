@@ -8,6 +8,7 @@ const Reviews = () => {
   const [reviewsData, setReviewsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  console.log(import.meta.env.VITE_API_BASE_URL);
 
   useEffect(() => {
     // Fetch reviews data from the API using Axios
