@@ -404,19 +404,31 @@ return (
     {/* Crop Modal */}
     {cropModalOpen && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white p-4 rounded shadow-lg w-11/12 max-w-md">
+        <div
+          className="bg-gradient-to-bl from-gray-800 to-gray-900 text-white p-4 rounded shadow-lg max-w-md"
+          >
           <Cropper
             src={imageToCrop}
             style={{ height: 400, width: '100%' }}
             aspectRatio={1}
             guides={false}
             ref={cropperRef}
+            viewMode={1} // Restrict cropping box to stay within the image boundaries
+            background={false} // Enable the image background (no transparency)
+            autoCropArea={1} // Use the full image as the cropping area by default
+            zoomable={true} // Disable zooming for simplicity (optional)
+            movable={false} // Disable moving the cropper box (optional)
+            scalable={true} // Disable scaling the image (optional)
+            responsive={true} // Ensures the cropper adjusts to the container size
+            dragMode="move" // Allows touch dragging
+            // cropBoxMovable={false} // Disable moving the crop box
+            // cropBoxResizable={false} // Disable resizing the crop box
           />
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" onClick={() => setCropModalOpen(false)}>
+            <Button variant="ghost" className='hover:bg-red-600 hover:text-white' onClick={() => setCropModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleCrop}>
+            <Button variant="ghost" onClick={handleCrop}>
               Confirm
             </Button>
           </div>

@@ -6,9 +6,6 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     include: ['browser-image-compression'],
-    esbuildOptions: {
-      plugins: [NodeGlobalsPolyfillPlugin({ buffer: true })],
-    },
   },
   build: {
     outDir: "dist",
