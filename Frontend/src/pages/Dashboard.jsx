@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [imageToCrop, setImageToCrop] = useState(null);
   const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [imageAspectRatio, setImageAspectRatio] = useState(1);
 
   const userId = useSelector((state) => state.auth.uid);
   const url = `/api/getUser/${userId}`;
@@ -124,6 +125,7 @@ const Dashboard = () => {
     console.log('File changed:', event.target.files[0]);
     const file = event.target.files?.[0];
     if (!file) return;
+    setImageAspectRatio(file.naturalWidth / file.naturalHeight);
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -405,11 +407,21 @@ return (
     {cropModalOpen && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div
-          className="bg-gradient-to-bl from-gray-800 to-gray-900 text-white p-4 rounded shadow-lg max-w-md"
+          className="bg-gradient-to-bl from-gray-800 to-gray-900 text-white p-4 rounded shadow-lg mx-auto"
+          style={{
+            width: "90%",
+            maxWidth: "500px", // Constrain the max width for desktop
+            height: "auto", // Allow dynamic height
+            marginTop: "20px", // Add spacing for mobile view
+          }}
           >
           <Cropper
             src={imageToCrop}
-            style={{ height: 400, width: '100%' }}
+            style={{
+              width: "100%", // Adjust width to fit the container
+              maxHeight: "400px", // Constrain max height for desktop
+              height: `${Math.min(window.innerWidth * imageAspectRatio, 200)}px`, // Dynamically adjust height
+            }}
             aspectRatio={1}
             guides={false}
             ref={cropperRef}
