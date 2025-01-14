@@ -29,7 +29,7 @@ const Plans = () => {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get("/api/getPlans");
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/getPlans`);
         setPlansData(response.data.data);
       } catch (error) {
         setError(error.message);
@@ -48,7 +48,7 @@ const Plans = () => {
 
   const handleAddItinerary = async (uid, planId) => {
     try {
-      const response = await axios.post("/api/add-itinerary", {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/add-itinerary`, {
         uid: uid,
         planId: planId,
       });

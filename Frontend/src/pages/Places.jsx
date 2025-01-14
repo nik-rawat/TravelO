@@ -34,7 +34,7 @@ const Places = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/getPlaces');
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/getPlaces`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
