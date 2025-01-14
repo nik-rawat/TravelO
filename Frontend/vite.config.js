@@ -21,6 +21,7 @@ export default defineConfig({
     '/api': {
         target: 'https://travel-o-backend.vercel.app',
         changeOrigin: true,
+        pathRewrite: { '^/api': '' },
       },
     },
   },
