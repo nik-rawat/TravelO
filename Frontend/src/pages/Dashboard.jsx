@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,6 +9,7 @@ import { Edit2, Save, X, Upload, User } from 'lucide-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import Navbar from '../components/Navbar';
+import imageCompression from 'browser-image-compression';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -14,12 +17,15 @@ const Dashboard = () => {
   const [tempValues, setTempValues] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const userId = useSelector((state) => state.auth.uid);
-  const url = `https://travel-o-backend.vercel.app/api/getUser/${userId}`;
-  const updateUrl = `https://travel-o-backend.vercel.app/api/updateUser`;
-  const avatarUrl = 'https://travel-o-backend.vercel.app/api/updateAvatar';
+  const url = `/api/getUser/${userId}`;
+  const updateUrl = '/api/updateUser ';
+  const avatarUrl = '/api/updateAvatar';
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,9 +42,96 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-
     fetchUserData();
   }, [url]);
+
+  const handleCrop = async () => {
+    console.log('Cropping image...');
+    const cropper = cropperRef.current.cropper;
+    if (!cropper) {
+      console.error('Cropper ref not set');
+      return;
+    }
+    try {
+      const croppedDataURL = cropper.getCroppedCanvas().toDataURL();
+      console.log('Cropped image generated:', croppedDataURL);
+      setCropModalOpen(false);
+      await handleAvatarUpdate(croppedDataURL); // Pass the cropped image directly
+    } catch (error) {
+      console.error('Error cropping image:', error);
+    }
+  };  
+
+  const handleAvatarUpdate = async (croppedImage) => {
+    if (!croppedImage) return;
+    console.log('Updating avatar...');
+  
+    const base64Image = croppedImage.split(',')[1]; // Remove the data:image/png;base64, part
+    if (!base64Image) {
+      console.error('Invalid base64 string');
+      return;
+    }
+    const decodedImage = atob(base64Image);
+    const arrayBuffer = new ArrayBuffer(decodedImage.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+  
+    for (let i = 0; i < decodedImage.length; i++) {
+      uint8Array[i] = decodedImage.charCodeAt(i);
+    }
+  
+    const blob = new Blob([uint8Array], { type: 'image/png' });
+    const formData = new FormData();
+    const avatarImg = new File([blob], 'avatar.png', { type: 'image/png' });
+  
+    try {
+      const compressedImage = await imageCompression(avatarImg, {
+        quality: 0.8,
+        maxWidthOrHeight: 500,
+        useWebWorker: true,
+      });
+      console.log('Compressed image:', compressedImage);
+      formData.append('avatar', compressedImage);
+      formData.append('uid', userId);
+  
+      setIsLoading(true);
+      setError(null);
+      const response = await axios.put(avatarUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (event) => {
+          const progress = Math.round((event.loaded * 100) / event.total);
+          console.log('Upload progress:', progress);
+        },
+      });
+      console.log('Avatar update response:', response.data);
+  
+      if (response.data) {
+        setUser((prev) => ({ ...prev, avatar: response.data.data }));
+      } else {
+        throw new Error('Avatar update failed');
+      }
+    } catch (error) {
+      setError('Failed to update avatar');
+      console.error('Error updating avatar:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+
+  const handleFileChange = (event) => {
+    console.log('File changed:', event.target.files[0]);
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result);
+      setCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleUpdate = async (field, value) => {
     setIsLoading(true);
@@ -69,40 +162,40 @@ const Dashboard = () => {
     }
   };
 
-  const handleAvatarUpdate = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // const handleAvatarUpdate = async (event) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file) return;
 
-    const formData = new FormData();
-    formData.append('avatar', file);
-    formData.append('uid', userId);
+  //   const formData = new FormData();
+  //   formData.append('avatar', file);
+  //   formData.append('uid', userId);
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await axios.put(avatarUrl, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (event) => {
-          const progress = Math.round((event.loaded * 100) / event.total);
-          console.log('Upload progress:', progress);
-        },
-      });
-      console.log('Avatar update response:', response);
+  //   setIsLoading(true);
+  //   setError(null);
+  //   try {
+  //     const response = await axios.put(avatarUrl, formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data'
+  //       },
+  //       onUploadProgress: (event) => {
+  //         const progress = Math.round((event.loaded * 100) / event.total);
+  //         console.log('Upload progress:', progress);
+  //       },
+  //     });
+  //     console.log('Avatar update response:', response.data);
 
-      if (response.data) {
-        setUser((prev) => ({ ...prev, avatar: response.data.avatar }));
-      } else {
-        throw new Error('Avatar update failed');
-      }
-    } catch (error) {
-      setError('Failed to update avatar');
-      console.error('Error updating avatar:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     if (response.data) {
+  //       setUser((prev) => ({ ...prev, avatar: response.data.data }));
+  //     } else {
+  //       throw new Error('Avatar update failed');
+  //     }
+  //   } catch (error) {
+  //     setError('Failed to update avatar');
+  //     console.error('Error updating avatar:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const startEditing = (field) => {
     setEditingField(field);
@@ -233,48 +326,47 @@ const Dashboard = () => {
 
   const registrationDate = new Date(user.registeredOn.seconds * 1000).toLocaleDateString();
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8 flex items-center justify-center">
-        <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
-            <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
-              <div className="relative group">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar} // Convert the binary string to a data URL
-                    alt="User Avatar"
-                    className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <User className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl text-slate-400" />
-                )}
+return (
+  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <Navbar />
+    <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
+      <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
+        <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
+          <div className="relative group">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt="User Avatar"
+                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl"
+              />
+            ) : (
+              <User className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl text-slate-400" />
+            )}
 
-                <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleAvatarUpdate}
-                    accept="image/*"
-                    className="hidden"
-                />
-                <Button 
-                    variant="ghost" 
-                    className="text-white text-sm md:text-base"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading}
-                >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Change Avatar
-                </Button>
-                </div>
+            <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                className="text-white text-sm md:text-base"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Change Avatar
+              </Button>
             </div>
-            <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
-                <EditableField field="username" value={user.username} />
-            </CardTitle>
-            </CardHeader>
-            {/* Rest of the CardContent remains the same... */}
-            <CardContent className="space-y-6 p-4 md:p-6">
+          </div>
+          <CardTitle className="text-2xl md:text-3xl font-bold text-white text-center">
+            {user?.username}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
                 <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -306,11 +398,33 @@ const Dashboard = () => {
                 </div>
             </div>
             </CardContent>
-        </Card>
-        </div>
+      </Card>
     </div>
 
-  );
+    {/* Crop Modal */}
+    {cropModalOpen && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white p-4 rounded shadow-lg w-11/12 max-w-md">
+          <Cropper
+            src={imageToCrop}
+            style={{ height: 400, width: '100%' }}
+            aspectRatio={1}
+            guides={false}
+            ref={cropperRef}
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="ghost" onClick={() => setCropModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleCrop}>
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Dashboard;

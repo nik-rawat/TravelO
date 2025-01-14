@@ -84,7 +84,7 @@ const ItineraryList = () => {
 
   const fetchItineraryData = async () => {
     try {
-      const response = await axios.get(`https://travel-o-backend.vercel.app/api/getItinerary/${uid}`);
+      const response = await axios.get(`/api/getItinerary/${uid}`);
       if (response.status === 200) {
         setItineraryData(response.data.data);
         fetchDetailedPlans(response.data.data);
@@ -107,7 +107,7 @@ const ItineraryList = () => {
     const initialAmounts = {};
     for (const plan of plans) {
       try {
-        const response = await axios.get(`https://travel-o-backend.vercel.app/api/getPlan/${plan.planId}`);
+        const response = await axios.get(`/api/getPlan/${plan.planId}`);
         const planData = response.data.data;
         detailedPlansData[plan.planId] = planData;
 
@@ -177,7 +177,7 @@ const ItineraryList = () => {
       };
   
       const response = await axios.put(
-        "https://travel-o-backend.vercel.app/api/complete-itinerary",
+        "/api/complete-itinerary",
         payload
       );
   
@@ -212,7 +212,7 @@ const ItineraryList = () => {
       };
   
       const response = await axios.put(
-        "https://travel-o-backend.vercel.app/api/book-itinerary",
+        "/api/book-itinerary",
         payload
       );
   
@@ -238,7 +238,7 @@ const ItineraryList = () => {
       };
   
       const response = await axios.delete(
-        "https://travel-o-backend.vercel.app/api/remove-itinerary",
+        "/api/remove-itinerary",
         { data: payload }
       );
   

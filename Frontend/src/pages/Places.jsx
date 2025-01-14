@@ -34,7 +34,7 @@ const Places = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('https://travel-o-backend.vercel.app/api/getPlaces');
+        const response = await fetch('/api/getPlaces');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

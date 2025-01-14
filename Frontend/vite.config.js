@@ -4,6 +4,12 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['browser-image-compression'],
+    esbuildOptions: {
+      plugins: [NodeGlobalsPolyfillPlugin({ buffer: true })],
+    },
+  },
   build: {
     outDir: "dist",
   },
@@ -14,5 +20,11 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-  }
+    proxy: {
+    '/api': {
+        target: 'https://travel-o-backend.vercel.app',
+        changeOrigin: true,
+      },
+    },
+  },
 })

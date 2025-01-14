@@ -19,7 +19,7 @@ const LoginPage = () => {
     setError(""); // Reset error message
 
     try {
-      const response = await fetch("https://travel-o-backend.vercel.app/api/login", {
+      const response = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
