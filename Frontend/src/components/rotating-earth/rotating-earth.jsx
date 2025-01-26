@@ -21,7 +21,7 @@ function Earth({ onLoaded }) {
 
   useFrame((state, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.1;
+      meshRef.current.rotation.y += delta * 0.05;
     }
   });
 
@@ -43,7 +43,7 @@ export default function RotatingEarth({ onLoaded }) {
   const [spring, api] = useSpring(() => ({
     from: { scale: [1, 1, 1], rotation: 0 },
     to: { scale: [0.4, 0.4, 0.4], rotation: Math.PI * 2 },
-    config: { tension: 100, friction: 5, duration: 1000, easing: (t) => t * (2 - t)  },
+    config: { tension: 100, friction: 5, duration: 1800, easing: (t) => t * (2 - t)  },
     onRest: onLoaded,
   }));
 
@@ -85,8 +85,12 @@ export default function RotatingEarth({ onLoaded }) {
       >
         <ambientLight intensity={2.5} />
         <pointLight position={[10, 10, 20]} intensity={100} />
-        <a.group scale={spring.scale}>
-          <Earth onLoaded={onLoaded} />
+
+        <a.group rotation-y={spring.rotation}>
+          <a.group scale={spring.scale}>
+            <Earth onLoaded={onLoaded} />
+            <OrbitControls enableZoom={false} enableRotate={true} />
+          </a.group>
         </a.group>
         <Stars
           radius={300}
@@ -97,7 +101,8 @@ export default function RotatingEarth({ onLoaded }) {
           fade
           speed={1.5}
         />
-        <OrbitControls enableZoom={false} enableRotate={false} />
+        
+
         {/* <EffectComposer>
           <Bloom
             luminanceThreshold={0.1}

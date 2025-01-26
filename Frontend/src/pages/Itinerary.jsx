@@ -6,7 +6,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -253,6 +252,19 @@ const ItineraryList = () => {
       console.error("Error removing itinerary:", error);
     }
   };
+
+  // const handle reviewSubmit = async (planId, review) => {
+  //   try {
+  //     const reviewUrl = `${import.meta.env.VITE_API_BASE_URL}/api/add-review`;
+      
+  //     const payload = {
+  //       uid: uid,
+  //       name: name,
+  //       planId: planId,
+  //       review: review,
+  //       rating: rating,
+  //       image: image,
+  //     };
 
   const categorizedPlans = {
     selected: itineraryData.filter((plan) => plan.status === "selected"),

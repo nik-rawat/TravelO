@@ -21,12 +21,11 @@ const Dashboard = () => {
   const [imageToCrop, setImageToCrop] = useState(null);
   const cropperRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [imageAspectRatio, setImageAspectRatio] = useState(1);
 
   const userId = useSelector((state) => state.auth.uid);
-  const url = `${import.meta.env.VITE_API_BASE_URL}/api/getUser/${userId}`;
-  const updateUrl = `${import.meta.env.VITE_API_BASE_URL}/api/updateUser `;
-  const avatarUrl = `${import.meta.env.VITE_API_BASE_URL}/api/updateAvatar`;
+  const url = `/api/getUser/${userId}`;
+  const updateUrl = '/api/updateUser ';
+  const avatarUrl = '/api/updateAvatar';
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -125,7 +124,6 @@ const Dashboard = () => {
     console.log('File changed:', event.target.files[0]);
     const file = event.target.files?.[0];
     if (!file) return;
-    setImageAspectRatio(file.naturalWidth / file.naturalHeight);
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -406,41 +404,19 @@ return (
     {/* Crop Modal */}
     {cropModalOpen && (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div
-          className="bg-gradient-to-bl from-gray-800 to-gray-900 text-white p-4 rounded shadow-lg mx-auto"
-          style={{
-            width: "90%",
-            maxWidth: "500px", // Constrain the max width for desktop
-            height: "auto", // Allow dynamic height
-            marginTop: "20px", // Add spacing for mobile view
-          }}
-          >
+        <div className="bg-white p-4 rounded shadow-lg w-11/12 max-w-md">
           <Cropper
             src={imageToCrop}
-            style={{
-              width: "100%", // Adjust width to fit the container
-              maxHeight: "400px", // Constrain max height for desktop
-              height: `${Math.min(window.innerWidth * imageAspectRatio, 200)}px`, // Dynamically adjust height
-            }}
+            style={{ height: 400, width: '100%' }}
             aspectRatio={1}
             guides={false}
             ref={cropperRef}
-            viewMode={1} // Restrict cropping box to stay within the image boundaries
-            background={false} // Enable the image background (no transparency)
-            autoCropArea={1} // Use the full image as the cropping area by default
-            zoomable={true} // Disable zooming for simplicity (optional)
-            movable={false} // Disable moving the cropper box (optional)
-            scalable={true} // Disable scaling the image (optional)
-            responsive={true} // Ensures the cropper adjusts to the container size
-            dragMode="move" // Allows touch dragging
-            // cropBoxMovable={false} // Disable moving the crop box
-            // cropBoxResizable={false} // Disable resizing the crop box
           />
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="ghost" className='hover:bg-red-600 hover:text-white' onClick={() => setCropModalOpen(false)}>
+            <Button variant="ghost" onClick={() => setCropModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="ghost" onClick={handleCrop}>
+            <Button variant="primary" onClick={handleCrop}>
               Confirm
             </Button>
           </div>

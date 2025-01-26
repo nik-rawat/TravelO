@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import RotatingEarth from "./components/rotating-earth/rotating-earth"
 import Plans from "./pages/Plans"
 import Places from "./pages/Places"
@@ -9,7 +9,12 @@ import Register from "./pages/Register"
 import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import Itinerary from "./pages/Itinerary"
+import { useSelector } from "react-redux";
+
 const App = () => {
+    const currentUser = useSelector((state) => state.auth.uid);
+  
+
   return (
     <div>
       <Router>
@@ -22,8 +27,18 @@ const App = () => {
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/itinerary" element={<Itinerary />} />
+          <Route
+            path="/dashboard"
+            element={
+              currentUser ? <Dashboard /> : <Navigate to="/login" replace />
+            }
+          />
+          <Route
+            path="/itinerary"
+            element={
+              currentUser ? <Itinerary /> : <Navigate to="/login" replace />
+            }
+          />
 
           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
