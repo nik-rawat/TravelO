@@ -23,9 +23,9 @@ const Dashboard = () => {
   const fileInputRef = useRef(null);
 
   const userId = useSelector((state) => state.auth.uid);
-  const url = `/api/getUser/${userId}`;
-  const updateUrl = '/api/updateUser ';
-  const avatarUrl = '/api/updateAvatar';
+  const url = `${import.meta.env.VITE_API_BASE_URL}/api/getUser/${userId}`;
+  const updateUrl = `${import.meta.env.VITE_API_BASE_URL}/api/updateUser`;
+  const avatarUrl = `${import.meta.env.VITE_API_BASE_URL}/api/updateAvatar`;
 
   useEffect(() => {
     const fetchUserData = async () => {
