@@ -10,7 +10,6 @@ import Home from "./pages/Home"
 import Dashboard from "./pages/Dashboard"
 import Itinerary from "./pages/Itinerary"
 import { useSelector } from "react-redux";
-
 const App = () => {
     const currentUser = useSelector((state) => state.auth.uid);
   

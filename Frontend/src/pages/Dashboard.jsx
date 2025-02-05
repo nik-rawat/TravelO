@@ -35,6 +35,7 @@ const Dashboard = () => {
         const response = await axios.get(url);
         setUser(response.data.data);
         setTempValues(response.data.data);
+        console.log('User data:', response.data.data);
       } catch (error) {
         setError('Failed to fetch user data');
         console.error('Error fetching user data:', error);
