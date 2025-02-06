@@ -1,5 +1,9 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -79,6 +83,13 @@ const ItineraryList = () => {
   const [durations, setDurations] = useState({});
   const [scheduleDates, setScheduleDates] = useState({});
   const [amounts, setAmounts] = useState({});
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewDetails, setReviewDetails] = useState({
+    image: null,
+    name: '',
+    rating: '',
+    review: ''
+  });
   const uid = useSelector((state) => state.auth.uid);
 
   const fetchItineraryData = async () => {
@@ -89,7 +100,7 @@ const ItineraryList = () => {
         fetchDetailedPlans(response.data.data);
       }
     } catch (err) {
-      setError("Error fetching itinerary data");
+      setError("Error fetching itinerary data", err);
     } finally {
       setLoading(false);
     }
@@ -194,9 +205,53 @@ const ItineraryList = () => {
     }
   };
 
-  const handleGiveReview = (planId) => {
-    console.log(`Giving review for planId: ${planId}`);
-    // logic to open review form
+  const handleGiveReview = () => {
+    setIsReviewModalOpen(true);
+  };
+
+  const handleReviewSubmit = async (planId) => {
+    try {
+      const payload = {
+        uid: uid,
+        planId: planId,
+        name: reviewDetails.name,
+        rating: reviewDetails.rating,
+        review: reviewDetails.review,
+        file: reviewDetails.image,
+      };
+      console.log('Review payload:', payload);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/add-review`
+        , payload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log('Review response:', response);
+
+      if (response.status === 201) {
+        console.log('Review submitted successfully');
+        setIsReviewModalOpen(false);  
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setReviewDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    setReviewDetails((prevDetails) => ({
+      ...prevDetails,
+      image: e.target.files[0]
+    }));
   };
 
   const handleBook = async (planId) => {
@@ -409,9 +464,64 @@ const ItineraryList = () => {
                       </Button>
                     </div>
                   ) : (
-                    <Button className="bg-yellow-800" onClick={() => handleGiveReview(currentPlan.planId)}>
-                      Give Review
-                    </Button>
+                    <div className="flex flex-col gap-4 p-4 text-white rounded-lg shadow-md">
+                      <Button onClick={() => handleGiveReview()}>Give Review</Button>
+                      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen} className="bg-slate-900/50 backdrop-blur-sm">
+                        <DialogContent className="bg-slate-900/50 backdrop-blur-sm p-4 rounded-lg text-white border border-slate-200/20" aria-describedby="review-description">
+                          <DialogHeader className="flex justify-between items-center">
+                            <DialogTitle className="text-white">Give Review</DialogTitle>
+                            <DialogClose />
+                          </DialogHeader>
+                          <DialogDescription id="review-description" className="text-slate-400">
+                            Fill ou the review form
+                          </DialogDescription>
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleReviewSubmit(currentPlan.planId);
+                          }}
+                          className="flex flex-col gap-4"
+                          >
+                            <Input 
+                              type="file" 
+                              name="image" 
+                              onChange={handleImageChange} 
+                              accept="image/*"
+                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                              required
+                            />
+                            <Input
+                              type="text"
+                              placeholder="Write your name"
+                              name="name"
+                              value={reviewDetails.name}
+                              onChange={handleInputChange}
+                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                              required
+                            />
+                            <Input 
+                              type="number" 
+                              name="rating" 
+                              value={reviewDetails.rating} 
+                              onChange={handleInputChange} 
+                              placeholder="Rating (1-5)" 
+                              min="1" 
+                              max="5" 
+                              required
+                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                            />
+                            <Textarea 
+                              name="review" 
+                              value={reviewDetails.review} 
+                              onChange={handleInputChange} 
+                              placeholder="Write your review here..."
+                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                              required
+                            />
+                            <Button type="submit" className="hover:bg-slate-800">Submit Review</Button>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   )
                 }
                 />
