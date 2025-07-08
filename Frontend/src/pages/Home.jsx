@@ -5,6 +5,7 @@ const RotatingEarth = React.lazy(() => import("../components/rotating-earth/rota
 import ClimbingBoxLoader from "react-spinners/ClimbingBoxLoader";
 import "./Home.css";
 
+
 const Home = () => {
   const [loaded, setLoaded] = useState(false);
 
@@ -15,7 +16,7 @@ const Home = () => {
   }, [loaded]);
 
   return (
-    <div>
+    <div className="relative">
       <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => {}} >
         <Suspense fallback={
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100vh", background: "black" }}>

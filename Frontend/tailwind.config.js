@@ -8,6 +8,11 @@ export default {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			urbanist: ['Urbanist', 'sans-serif'],
+			inter: ['Inter', 'sans-serif'],
+			playfair: ['Playfair Display', 'serif'],
+		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

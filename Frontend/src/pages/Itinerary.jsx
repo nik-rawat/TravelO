@@ -5,82 +5,113 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDe
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, max } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { url } from "inspector";
+import toast, { Toaster } from 'react-hot-toast';
 
-const LoadingSpinner = () => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="flex flex-col items-center justify-center p-8"
-  >
+// New Skeleton Loader Component for full cards (used when initial itineraryData is loading)
+const ItineraryCardSkeleton = () => (
+  <div className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 p-4 rounded-lg shadow-md">
+    <div className="animate-pulse">
+      {/* Card Header (Title) */}
+      <div className="h-6 bg-slate-700 rounded w-3/4 mb-4"></div>
+
+      {/* Card Content (Description) */}
+      <div className="h-4 bg-slate-700 rounded w-full mb-2"></div>
+      <div className="h-4 bg-slate-700 rounded w-5/6 mb-6"></div>
+
+      {/* This section now mimics the controls for a 'selected' card */}
+      <div className="space-y-4">
+        {/* Persons Counter Placeholder */}
+        <div className="flex justify-between items-center">
+          <div className="h-5 bg-slate-700 rounded w-20"></div>
+          <div className="h-8 bg-slate-700 rounded w-28"></div>
+        </div>
+
+        {/* Duration Counter Placeholder */}
+        <div className="flex justify-between items-center">
+          <div className="h-5 bg-slate-700 rounded w-24"></div>
+          <div className="h-8 bg-slate-700 rounded w-28"></div>
+        </div>
+
+        {/* Date Picker Placeholder */}
+        <div className="h-10 bg-slate-700 rounded w-full"></div>
+
+        {/* Total Amount Placeholder */}
+        <div className="h-6 bg-slate-700 rounded w-36"></div>
+
+        {/* Action Buttons Placeholder */}
+        <div className="flex justify-between gap-4 pt-2">
+          <div className="h-10 bg-slate-700 rounded w-1/2"></div>
+          <div className="h-10 bg-slate-700 rounded w-1/2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+
+const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => {
+  const planDetails = detailedPlans[plan.planId];
+  const isPlanDetailsLoading = !planDetails;
+
+  return (
     <motion.div
-      animate={{
-        rotate: 360,
-        scale: [1, 1.2, 1],
-      }}
-      transition={{
-        duration: 1.5,
-        repeat: Infinity,
-        ease: "linear",
-      }}
-    >
-      <Loader className="w-12 h-12 text-blue-500" />
-    </motion.div>
-    <motion.p
-      initial={{ opacity: 0, y: 10 }}
+      className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 p-4 rounded-lg shadow-md"
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="mt-4 text-white text-lg"
+      transition={{ duration: 0.5 }}
     >
-      Loading your itineraries...
-    </motion.p>
-  </motion.div>
-);
-
-const ErrorMessage = ({ message }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mx-auto max-w-md"
-  >
-    <motion.p className="text-red-500 text-lg font-semibold">{message}</motion.p>
-  </motion.div>
-);
-
-const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => (
-  <motion.div
-    className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 p-4 rounded-lg shadow-md"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-  >
-    <CardHeader>
-      <CardTitle className="text-xl text-white">{detailedPlans[plan.planId]?.title || "Loading..."}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-slate-400">{detailedPlans[plan.planId]?.description || "Loading..."}</p>
-    </CardContent>
-    <CardFooter className="flex justify-between gap-4">{buttonActions(plan)}</CardFooter>
-  </motion.div>
-);
+      <CardHeader>
+        {isPlanDetailsLoading ? (
+          <div className="animate-pulse">
+            <div className="h-6 bg-slate-700 rounded w-3/4 mb-2"></div>
+          </div>
+        ) : (
+          <CardTitle className="text-xl text-white">{planDetails.title}</CardTitle>
+        )}
+      </CardHeader>
+      <CardContent>
+        {isPlanDetailsLoading ? (
+          <div className="animate-pulse">
+            <div className="h-4 bg-slate-700 rounded w-full mb-2"></div>
+            <div className="h-4 bg-slate-700 rounded w-5/6"></div>
+          </div>
+        ) : (
+          <p className="text-slate-400">{planDetails.description}</p>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-between gap-4">
+        {isPlanDetailsLoading ? (
+          <div className="animate-pulse w-full flex flex-col gap-4">
+            <div className="h-5 bg-slate-700 rounded w-20"></div>
+            <div className="h-5 bg-slate-700 rounded w-24"></div>
+            <div className="h-10 bg-slate-700 rounded w-full"></div>
+            <div className="h-6 bg-slate-700 rounded w-36"></div>
+            <div className="flex justify-between gap-4 pt-2">
+              <div className="h-10 bg-slate-700 rounded w-1/2"></div>
+              <div className="h-10 bg-slate-700 rounded w-1/2"></div>
+            </div>
+          </div>
+        ) : (
+          buttonActions(plan)
+        )}
+      </CardFooter>
+    </motion.div>
+  );
+};
 
 const ItineraryList = () => {
   const [itineraryData, setItineraryData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [detailedPlans, setDetailedPlans] = useState({});
-  const [personCounts, setPersonCounts] = useState({}); 
+  const [loading, setLoading] = useState(true); // Overall loading for itineraryData
+  const [detailedPlans, setDetailedPlans] = useState({}); // Stores detailed plan info
+  const [personCounts, setPersonCounts] = useState({});
   const [durations, setDurations] = useState({});
   const [scheduleDates, setScheduleDates] = useState({});
   const [amounts, setAmounts] = useState({});
@@ -91,18 +122,23 @@ const ItineraryList = () => {
     rating: '',
     review: ''
   });
+
   const uid = useSelector((state) => state.auth.uid);
 
   const fetchItineraryData = async () => {
+    setLoading(true); // Start overall loading
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/getItinerary/${uid}`);
       if (response.status === 200) {
         setItineraryData(response.data.data);
+        // Start fetching detailed plans concurrently, but don't block overall loading
         fetchDetailedPlans(response.data.data);
       }
     } catch (err) {
-      setError("Error fetching itinerary data", err);
+      console.error("Error fetching itinerary data:", err);
+      toast.error("Failed to fetch your itineraries. Please try again later.");
     } finally {
+      // Overall loading ends here, even if detailed plans are still fetching
       setLoading(false);
     }
   };
@@ -111,34 +147,44 @@ const ItineraryList = () => {
     if (uid) {
       fetchItineraryData();
     }
+    // eslint-disable-next-line
   }, [uid]);
 
   const fetchDetailedPlans = async (plans) => {
-    const detailedPlansData = {};
-    const initialAmounts = {};
-    for (const plan of plans) {
+    const detailedPlansPromises = plans.map(async (plan) => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/getPlan/${plan.planId}`);
         const planData = response.data.data;
-        detailedPlansData[plan.planId] = planData;
-
-        initialAmounts[plan.planId] = 
-        (planData.price || 0) *
-        (durations[plan.planId] || 1) *
-        (personCounts[plan.planId] || 1);
+        return { planId: plan.planId, data: planData };
       } catch (err) {
         console.error(`Error fetching detailed plan data for planId ${plan.planId}:`, err);
+        return { planId: plan.planId, data: null }; // Return null data if fetch fails
       }
-    }
-    setDetailedPlans(detailedPlansData);
-    setAmounts(initialAmounts);
+    });
+
+    const results = await Promise.all(detailedPlansPromises);
+    const newDetailedPlans = {};
+    const newInitialAmounts = {};
+
+    results.forEach(({ planId, data }) => {
+      if (data) {
+        newDetailedPlans[planId] = data;
+        newInitialAmounts[planId] =
+          (data.price || 0) *
+          (durations[planId] || 1) *
+          (personCounts[planId] || 1);
+      }
+    });
+
+    setDetailedPlans((prev) => ({ ...prev, ...newDetailedPlans }));
+    setAmounts((prev) => ({ ...prev, ...newInitialAmounts }));
   };
 
   const handlePersonCount = (planId, increment) => {
     setPersonCounts((prevCounts) => {
       const currentCount = prevCounts[planId] || 1;
       const newCount = increment ? currentCount + 1 : Math.max(1, currentCount - 1);
-  
+
       // Update amounts
       setAmounts((prevAmounts) => ({
         ...prevAmounts,
@@ -147,17 +193,16 @@ const ItineraryList = () => {
           newCount *
           (durations[planId] || 1),
       }));
-  
+
       return { ...prevCounts, [planId]: newCount };
     });
   };
-  
-  
+
   const handleDuration = (planId, increment) => {
     setDurations((prevDurations) => {
       const currentDuration = prevDurations[planId] || 1;
       const newDuration = increment ? currentDuration + 1 : Math.max(1, currentDuration - 1);
-  
+
       // Update amounts
       setAmounts((prevAmounts) => ({
         ...prevAmounts,
@@ -166,44 +211,39 @@ const ItineraryList = () => {
           (personCounts[planId] || 1) *
           newDuration,
       }));
-  
+
       return { ...prevDurations, [planId]: newDuration };
     });
   };
-  
-  
+
   const handleDateSelect = (planId, date) => {
     setScheduleDates((prevDates) => ({
       ...prevDates,
       [planId]: date,
     }));
   };
-  
 
   const handleCompleteItinerary = async (planId) => {
-    try {
-      const payload = {
-        uid: uid,
-        planId: planId,
-      };
-  
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/complete-itinerary`,
-        payload
-      );
-  
-      if (response.status === 200) {
-        setItineraryData((prevData) =>
-          prevData.map((plan) =>
-            plan.planId === planId ? { ...plan, status: "completed" } : plan
-          )
-        );
-      } else {
-        console.error("Failed to mark itinerary as completed:", response.data);
-      }
-    } catch (error) {
-      console.error("Error completing itinerary:", error);
-    }
+    const promise = axios.put(
+      `${import.meta.env.VITE_API_BASE_URL}/api/complete-itinerary`,
+      { uid, planId }
+    );
+
+    toast.promise(promise, {
+      loading: 'Completing itinerary...',
+      success: (response) => {
+        if (response.status === 200) {
+          setItineraryData((prevData) =>
+            prevData.map((plan) =>
+              plan.planId === planId ? { ...plan, status: "completed" } : plan
+            )
+          );
+          return 'Itinerary marked as completed!';
+        }
+        throw new Error('Failed to complete itinerary');
+      },
+      error: 'Could not complete itinerary. Please try again.',
+    });
   };
 
   const handleGiveReview = () => {
@@ -211,33 +251,30 @@ const ItineraryList = () => {
   };
 
   const handleReviewSubmit = async (planId) => {
-    try {
-      const payload = {
-        uid: uid,
-        planId: planId,
-        name: reviewDetails.name,
-        rating: reviewDetails.rating,
-        review: reviewDetails.review,
-        file: reviewDetails.image,
-      };
-      console.log('Review payload:', payload);
+    const payload = new FormData();
+    payload.append('uid', uid);
+    payload.append('planId', planId);
+    payload.append('name', reviewDetails.name);
+    payload.append('rating', reviewDetails.rating);
+    payload.append('review', reviewDetails.review);
+    payload.append('file', reviewDetails.image);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/add-review`
-        , payload, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+    const promise = axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/add-review`, payload, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    toast.promise(promise, {
+      loading: 'Submitting your review...',
+      success: (response) => {
+        if (response.status === 201) {
+          setIsReviewModalOpen(false);
+          setReviewDetails({ image: null, name: '', rating: '', review: '' });
+          return 'Thank you for your review!';
         }
-      });
-      console.log('Review response:', response);
-
-      if (response.status === 201) {
-        console.log('Review submitted successfully');
-        setIsReviewModalOpen(false);  
-      }
-    } catch (error) {
-      console.error('Error submitting review:', error);
-    }
+        throw new Error('Failed to submit review');
+      },
+      error: 'Could not submit review. Please check your input.',
+    });
   };
 
   const handleInputChange = (e) => {
@@ -259,7 +296,7 @@ const ItineraryList = () => {
     return new Promise((resolve) => {
       const script = document.createElement("script");
       script.src = src;
-      script.onload = () => { 
+      script.onload = () => {
         resolve(true);
       };
       script.onerror = () => {
@@ -270,104 +307,105 @@ const ItineraryList = () => {
     });
   };
 
-  const createRazorpayOrder = async (amount) => {
-    let data = JSON.stringify({
-      amount: amount * 100, // Convert to paise
-      currency: "INR",
-    });
-
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/create-order`,
-        data
-      , {
-        headers: {
-          "Content-Type": "application/json",
-        }
-      });
-
-      if (response.status === 200) {
-        console.log("Razorpay order created successfully:", response.data);
-        // handleRazorpayScreen(response.data.amount);
-      } else {
-        console.error("Failed to create Razorpay order:", response.data);
-        throw new Error("Failed to create Razorpay order");
-      }
-    } catch (error) {
-      console.error("Error creating Razorpay order:", error);
-      throw error;
-    }
-  };
-
-  const handleRazorpayScreen = async (amount) => {
-    const res = await loadScript("https://checkout.razorpay.com/v1/
-
+  // Razorpay payment and booking logic
   const handleBook = async (planId) => {
-    try {
-      const payload = {
-        scheduled: scheduleDates[planId] ? format(scheduleDates[planId], "d MMMM yyyy 'at' HH:mm:ss 'UTC+5:30'") : "Not scheduled",
-        duration: durations[planId] || 1,
-        personCount: personCounts[planId] || 1,
-        totalAmount: (detailedPlans[planId]?.price || 0) * (durations[planId] || 1) * (personCounts[planId] || 1),
-        uid: uid,
-        planId: planId,
-      };
-  
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/book-itinerary`,
-        payload
-      );
-  
-      if (response.status === 200) {
-        setItineraryData((prevData) =>
-          prevData.map((plan) =>
-            plan.planId === planId ? { ...plan, status: "ongoing", scheduled: payload.scheduled } : plan
-          )
-        );
-      } else {
-        console.error("Booking failed:", response.data);
-      }
-    } catch (error) {
-      console.error("Error booking itinerary:", error);
+    if (!scheduleDates[planId]) {
+      toast.error("Please select a date before booking.");
+      return;
     }
+
+    const totalAmount = (detailedPlans[planId]?.price || 0) * (durations[planId] || 1) * (personCounts[planId] || 1);
+    const bookingPromise = async () => {
+      // 1. Create Razorpay order
+      const orderRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/create-order`, {
+        amount: totalAmount * 100, // in paise
+        currency: "INR"
+      });
+      const order = orderRes.data;
+
+      // 2. Load Razorpay script
+      const res = await loadScript("https://checkout.razorpay.com/v1/checkout.js");
+      if (!res) throw new Error("Razorpay SDK failed to load. Are you online?");
+
+      // 3. Open Razorpay payment window
+      return new Promise((resolve, reject) => {
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: order.currency,
+          name: "TravelO",
+          description: "Booking Itinerary",
+          image: "https://travel-o-sage.vercel.app/assets/Travelo-white-bg.png",
+          order_id: order.id,
+          handler: async function (response) {
+            try {
+              const verifyRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/verify-payment/${response.razorpay_payment_id}`);
+              if (verifyRes.status === 200) {
+                const payload = {
+                  scheduled: scheduleDates[planId] ? format(scheduleDates[planId], "d MMMM silam 'at' HH:mm:ss 'UTC+5:30'") : "Not scheduled", // Date is now guaranteed
+                  duration: durations[planId] || 1,
+                  personCount: personCounts[planId] || 1,
+                  totalAmount: totalAmount,
+                  uid: uid,
+                  planId: planId,
+                };
+                const bookRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/book-itinerary`, payload);
+                if (bookRes.status === 200) {
+                  setItineraryData((prevData) =>
+                    prevData.map((plan) =>
+                      plan.planId === planId ? { ...plan, status: "ongoing", scheduled: payload.scheduled } : plan
+                    )
+                  );
+                  resolve("Payment successful! Your itinerary has been booked.");
+                } else {
+                  reject("Booking failed after payment. Please contact support.");
+                }
+              } else {
+                reject("Payment verification failed. Please try again.");
+              }
+            } catch (err) {
+              console.error("Payment verification error:", err);
+              reject("Payment verification error. Please try again.");
+            }
+          },
+          prefill: { name: "John Doe", email: "" },
+          theme: { color: "#050A1C" },
+          modal: {
+            ondismiss: () => {
+              reject("Payment was cancelled.");
+            }
+          }
+        };
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.open();
+      });
+    };
+
+    toast.promise(bookingPromise(), {
+      loading: 'Initializing payment...',
+      success: (message) => message,
+      error: (err) => err.toString(),
+    });
   };
+
 
   const handleRemovePlan = async (planId) => {
-    try {
-      const payload = {
-        uid: uid,
-        planId: planId,
-      };
-  
-      const response = await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/remove-itinerary`,
-        { data: payload }
-      );
-  
-      if (response.status === 200) {
-        setItineraryData((prevData) =>
-          prevData.filter((plan) => plan.planId !== planId)
-        );
-      } else {
-        console.error("Removal failed:", response.data);
-      }
-    } catch (error) {
-      console.error("Error removing itinerary:", error);
-    }
-  };
+    const promise = axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/remove-itinerary`, {
+      data: { uid, planId }
+    });
 
-  // const handle reviewSubmit = async (planId, review) => {
-  //   try {
-  //     const reviewUrl = `${import.meta.env.VITE_API_BASE_URL}/api/add-review`;
-      
-  //     const payload = {
-  //       uid: uid,
-  //       name: name,
-  //       planId: planId,
-  //       review: review,
-  //       rating: rating,
-  //       image: image,
-  //     };
+    toast.promise(promise, {
+      loading: 'Removing plan...',
+      success: (response) => {
+        if (response.status === 200) {
+          setItineraryData((prevData) => prevData.filter((plan) => plan.planId !== planId));
+          return 'Plan removed successfully!';
+        }
+        throw new Error('Failed to remove plan');
+      },
+      error: 'Could not remove plan. Please try again.',
+    });
+  };
 
   const categorizedPlans = {
     selected: itineraryData.filter((plan) => plan.status === "selected"),
@@ -378,205 +416,221 @@ const ItineraryList = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-slate-900">
       <Navbar />
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{
+        className: 'bg-slate-800 text-white',
+      }} />
       <div className="container mx-auto py-16 px-4">
         <motion.h1 className="text-4xl font-bold text-white mb-8 text-center">Your Itineraries</motion.h1>
-        <AnimatePresence>
-          {loading && <LoadingSpinner />}
-          {error && <ErrorMessage message={error} />}
-        </AnimatePresence>
 
-        {["selected", "ongoing", "previous"].map((category) => (
-          <div key={category} className="mb-12">
-            <motion.h2 className="text-2xl text-white mb-4 capitalize">{category} itineraries</motion.h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {categorizedPlans[category].map((plan, index) => (
-                <ItineraryCard
-                key={plan.planId}
-                className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 shadow-md rounded-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                plan={plan}
-                detailedPlans={detailedPlans}
-                buttonActions={(currentPlan) =>
-                  category === "selected" ? (
-                    <>
-                      <div className="flex flex-col gap-4 mt-4">
-                        <div className="flex items-center gap-4">
-                          <span className="text-white">Persons:</span>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              onClick={() => handlePersonCount(currentPlan.planId, false)}
-                              className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                            >
-                              -
-                            </Button>
-                            <motion.span
-                              key={personCounts[currentPlan.planId]}
-                              initial={{ scale: 0.8 }}
-                              animate={{ scale: 1 }}
-                              className="text-white"
-                            >
-                              {personCounts[currentPlan.planId] || 1}
-                            </motion.span>
-                            <Button
-                              onClick={() => handlePersonCount(currentPlan.planId, true)}
-                              className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                              disabled={(personCounts[currentPlan.planId] || 1) >= (detailedPlans[currentPlan.planId]?.maxGroup || 1)}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-              
-                        <div className="flex items-center gap-4">
-                          <span className="text-white">Duration (days):</span>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              onClick={() => handleDuration(currentPlan.planId, false)}
-                              className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                            >
-                              -
-                            </Button>
-                            <motion.span
-                              key={durations[currentPlan.planId]}
-                              initial={{ scale: 0.8 }}
-                              animate={{ scale: 1 }}
-                              className="text-white"
-                            >
-                              {durations[currentPlan.planId] || 1}
-                            </motion.span>
-                            <Button
-                              onClick={() => handleDuration(currentPlan.planId, true)}
-                              className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-              
-                        <div className="flex items-center gap-4">
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className="w-full justify-start text-left font-normal text-gray-800"
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {scheduleDates[currentPlan. planId]
-                                  ? format(scheduleDates[currentPlan.planId], "PPP")
-                                  : "Pick a date"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={scheduleDates[currentPlan.planId]}
-                                onSelect={(date) => handleDateSelect(currentPlan.planId, date)}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-              
-                        <div className="flex items-center text-white">
-                          Total amount: ₹
-                          <span className="text-white">
-                            {amounts[currentPlan.planId] || "N/A"}
-                          </span>
-                        </div>
-
-              
-                        <div className="flex justify-between gap-4">
-                          <Button
-                            className="w-1/2 bg-red-500 hover:bg-red-600"
-                            onClick={() => handleRemovePlan(currentPlan.planId)}
-                          >
-                            Remove
-                          </Button>
-                          <Button
-                            className="w-1/2 bg-green-500 hover:bg-green-600"
-                            onClick={() => handleBook(currentPlan.planId)}
-                          >
-                            Book
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  ) : category === "ongoing" ? (
-                    <div className="flex flex-col gap-4 p-4 text-white rounded-lg shadow-md">
-                      Scheduled for: {currentPlan.scheduled ? currentPlan.scheduled : "Not scheduled"}
-                      <Button className="bg-blue-500" onClick={() => handleCompleteItinerary(currentPlan.planId)}>
-                        Complete Itinerary
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-4 p-4 text-white rounded-lg shadow-md">
-                      <Button onClick={() => handleGiveReview()}>Give Review</Button>
-                      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen} className="bg-slate-900/50 backdrop-blur-sm">
-                        <DialogContent className="bg-slate-900/50 backdrop-blur-sm p-4 rounded-lg text-white border border-slate-200/20" aria-describedby="review-description">
-                          <DialogHeader className="flex justify-between items-center">
-                            <DialogTitle className="text-white">Give Review</DialogTitle>
-                            <DialogClose />
-                          </DialogHeader>
-                          <DialogDescription id="review-description" className="text-slate-400">
-                            Fill ou the review form
-                          </DialogDescription>
-                          <form onSubmit={(e) => {
-                            e.preventDefault();
-                            handleReviewSubmit(currentPlan.planId);
-                          }}
-                          className="flex flex-col gap-4"
-                          >
-                            <Input 
-                              type="file" 
-                              name="image" 
-                              onChange={handleImageChange} 
-                              accept="image/*"
-                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
-                              required
-                            />
-                            <Input
-                              type="text"
-                              placeholder="Write your name"
-                              name="name"
-                              value={reviewDetails.name}
-                              onChange={handleInputChange}
-                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
-                              required
-                            />
-                            <Input 
-                              type="number" 
-                              name="rating" 
-                              value={reviewDetails.rating} 
-                              onChange={handleInputChange} 
-                              placeholder="Rating (1-5)" 
-                              min="1" 
-                              max="5" 
-                              required
-                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
-                            />
-                            <Textarea 
-                              name="review" 
-                              value={reviewDetails.review} 
-                              onChange={handleInputChange} 
-                              placeholder="Write your review here..."
-                              className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
-                              required
-                            />
-                            <Button type="submit" className="hover:bg-slate-800">Submit Review</Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  )
-                }
-                />
-              ))}
-            </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(3)].map((_, i) => <ItineraryCardSkeleton key={i} />)}
           </div>
-        ))}
+        ) : (
+          ["selected", "ongoing", "previous"].map((category) => (
+            <div key={category} className="mb-12">
+              <AnimatePresence>
+                {categorizedPlans[category].length > 0 && (
+                  <motion.div>
+                    <h2 className="text-2xl text-white mb-4 capitalize">{category} itineraries</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {categorizedPlans[category].map((plan, index) => (
+                        <ItineraryCard
+                          key={plan.planId}
+                          className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 shadow-md rounded-lg"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{ duration: 0.5, delay: index * 0.1 }}
+                          plan={plan}
+                          detailedPlans={detailedPlans}
+                          buttonActions={(currentPlan) =>
+                            category === "selected" ? (
+                              <>
+                                <div className="flex flex-col gap-4 mt-4 w-full">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-white">Persons:</span>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        onClick={() => handlePersonCount(currentPlan.planId, false)}
+                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                                      >
+                                        -
+                                      </Button>
+                                      <motion.span
+                                        key={personCounts[currentPlan.planId]}
+                                        initial={{ scale: 0.8 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-white w-4 text-center"
+                                      >
+                                        {personCounts[currentPlan.planId] || 1}
+                                      </motion.span>
+                                      <Button
+                                        onClick={() => handlePersonCount(currentPlan.planId, true)}
+                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                                        disabled={(personCounts[currentPlan.planId] || 1) >= (detailedPlans[currentPlan.planId]?.maxGroup || 1)}
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-white">Duration:</span>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        onClick={() => handleDuration(currentPlan.planId, false)}
+                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                                      >
+                                        -
+                                      </Button>
+                                      <motion.span
+                                        key={durations[currentPlan.planId]}
+                                        initial={{ scale: 0.8 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-white w-4 text-center"
+                                      >
+                                        {durations[currentPlan.planId] || 1}
+                                      </motion.span>
+                                      <Button
+                                        onClick={() => handleDuration(currentPlan.planId, true)}
+                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
+                                      >
+                                        +
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className="w-full justify-start text-left font-normal text-white bg-slate-800/50 border-slate-200/20"
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {scheduleDates[currentPlan.planId]
+                                          ? format(scheduleDates[currentPlan.planId], "PPP")
+                                          : "Pick a date"}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={scheduleDates[currentPlan.planId]}
+                                        onSelect={(date) => handleDateSelect(currentPlan.planId, date)}
+                                        disabled={{
+                                          before: (() => {
+                                            const date = new Date();
+                                            date.setDate(date.getDate() + 2);
+                                            return date;
+                                          })()
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+
+                                  <div className="flex items-center text-white font-semibold text-lg">
+                                    Total: ₹
+                                    <span>
+                                      {amounts[currentPlan.planId]?.toLocaleString('en-IN') || "0"}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex justify-between gap-4">
+                                    <Button
+                                      className="w-1/2 bg-red-500 hover:bg-red-600"
+                                      onClick={() => handleRemovePlan(currentPlan.planId)}
+                                    >
+                                      Remove
+                                    </Button>
+                                    <Button
+                                      className="w-1/2 bg-green-500 hover:bg-green-600"
+                                      disabled={!scheduleDates[currentPlan.planId]}
+                                      onClick={() => handleBook(currentPlan.planId)}
+                                    >
+                                      Book
+                                    </Button>
+                                  </div>
+                                </div>
+                              </>
+                            ) : category === "ongoing" ? (
+                              <div className="flex flex-col gap-4 p-4 text-white rounded-lg w-full">
+                                Scheduled for: {currentPlan.scheduled ? currentPlan.scheduled : "Not scheduled"}
+                                <Button className="bg-blue-500" onClick={() => handleCompleteItinerary(currentPlan.planId)}>
+                                  Complete Itinerary
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col gap-4 p-4 text-white rounded-lg w-full">
+                                <Button onClick={() => handleGiveReview()}>Give Review</Button>
+                                <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen} className="bg-slate-900/50 backdrop-blur-sm">
+                                  <DialogContent className="bg-slate-900/50 backdrop-blur-sm p-4 rounded-lg text-white border border-slate-200/20" aria-describedby="review-description">
+                                    <DialogHeader className="flex justify-between items-center">
+                                      <DialogTitle className="text-white">Give Review</DialogTitle>
+                                      <DialogClose />
+                                    </DialogHeader>
+                                    <DialogDescription id="review-description" className="text-slate-400">
+                                      Fill out the review form
+                                    </DialogDescription>
+                                    <form onSubmit={(e) => {
+                                      e.preventDefault();
+                                      handleReviewSubmit(currentPlan.planId);
+                                    }}
+                                      className="flex flex-col gap-4"
+                                    >
+                                      <Input
+                                        type="file"
+                                        name="image"
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                                        required
+                                      />
+                                      <Input
+                                        type="text"
+                                        placeholder="Write your name"
+                                        name="name"
+                                        value={reviewDetails.name}
+                                        onChange={handleInputChange}
+                                        className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                                        required
+                                      />
+                                      <Input
+                                        type="number"
+                                        name="rating"
+                                        value={reviewDetails.rating}
+                                        onChange={handleInputChange}
+                                        placeholder="Rating (1-5)"
+                                        min="1"
+                                        max="5"
+                                        required
+                                        className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                                      />
+                                      <Textarea
+                                        name="review"
+                                        value={reviewDetails.review}
+                                        onChange={handleInputChange}
+                                        placeholder="Write your review here..."
+                                        className="bg-slate-800/50 text-white border border-slate-200/20 p-2"
+                                        required
+                                      />
+                                      <Button type="submit" className="hover:bg-slate-800">Submit Review</Button>
+                                    </form>
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
