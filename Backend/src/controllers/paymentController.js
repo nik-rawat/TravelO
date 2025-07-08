@@ -4,7 +4,7 @@ import { razorpay } from './lib/razorpay.js';
 export const createOrder = async (amount, currency = 'INR') => {
     try {
         const options = {
-            amount: amount * 100, // Amount in paise
+            amount: amount, // Amount in paise
             currency: currency,
             receipt: `receipt_${new Date().getTime()}`,
             payment_capture: 1, // Auto capture the payment

@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, max } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
+import { url } from "inspector";
 
 const LoadingSpinner = () => (
   <motion.div
@@ -254,14 +255,40 @@ const ItineraryList = () => {
     }));
   };
 
+  const loadScript = (src) => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => { 
+        resolve(true);
+      };
+      script.onerror = () => {
+        console.error("Failed to load script:", src);
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
   const createRazorpayOrder = async (amount) => {
+    let data = JSON.stringify({
+      amount: amount * 100, // Convert to paise
+      currency: "INR",
+    });
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/api/create-order`,
-        { amount }
-      );
+        data
+      , {
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
       if (response.status === 200) {
-        return response.data.order;
+        console.log("Razorpay order created successfully:", response.data);
+        // handleRazorpayScreen(response.data.amount);
       } else {
         console.error("Failed to create Razorpay order:", response.data);
         throw new Error("Failed to create Razorpay order");
@@ -271,6 +298,9 @@ const ItineraryList = () => {
       throw error;
     }
   };
+
+  const handleRazorpayScreen = async (amount) => {
+    const res = await loadScript("https://checkout.razorpay.com/v1/
 
   const handleBook = async (planId) => {
     try {
