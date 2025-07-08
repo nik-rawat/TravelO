@@ -254,6 +254,24 @@ const ItineraryList = () => {
     }));
   };
 
+  const createRazorpayOrder = async (amount) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/create-order`,
+        { amount }
+      );
+      if (response.status === 200) {
+        return response.data.order;
+      } else {
+        console.error("Failed to create Razorpay order:", response.data);
+        throw new Error("Failed to create Razorpay order");
+      }
+    } catch (error) {
+      console.error("Error creating Razorpay order:", error);
+      throw error;
+    }
+  };
+
   const handleBook = async (planId) => {
     try {
       const payload = {

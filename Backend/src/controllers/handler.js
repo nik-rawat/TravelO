@@ -338,6 +338,7 @@ export async function handler(req, res, method) {
                 return { status: 500, error: "Internal Server Error" };
             }
         }
+
         if (path === '/api/add-itinerary') {
             try {
                 const { uid, planId, } = req.body;
@@ -360,6 +361,33 @@ export async function handler(req, res, method) {
                 return { status: 500, error: "Internal Server Error" };
             }
         }
+
+        if (path === '/api/book-itinerary') {
+            try {
+                const { uid, planId, scheduled, duration, personCount, totalAmount } = req.body;
+                const itineraryData = {
+                    uid,
+                    planId,
+                    scheduled,
+                    duration,
+                    personCount,
+                    totalAmount,
+                    createdAt: new Date().toISOString(),
+                    status: "ongoing"
+                }
+                const itineraryId = itineraryData.uid + itineraryData.planId;
+                const docRef = doc(db, "itinerary", itineraryId);
+                await setDoc(docRef, itineraryData);
+                return { status: 200, 
+                    message: "Itinerary scheduled successfully!",
+                    id: itineraryId,
+                };
+            } catch (error) {
+                console.error("Error scheduling itinerary:", error);
+                return { status: 500, error: "Internal Server Error" };
+            }
+        }
+
         if (path === '/api/forgot-password') {
             try {
                 const data = req.body;
@@ -459,32 +487,6 @@ export async function handler(req, res, method) {
             } catch (err) {
                 console.error(err);
                 return { status: 500, message: "Error updating user" };
-            }
-        }
-
-        if (path === '/api/book-itinerary') {
-            try {
-                const { uid, planId, scheduled, duration, personCount, totalAmount } = req.body;
-                const itineraryData = {
-                    uid,
-                    planId,
-                    scheduled,
-                    duration,
-                    personCount,
-                    totalAmount,
-                    createdAt: new Date().toISOString(),
-                    status: "ongoing"
-                }
-                const itineraryId = itineraryData.uid + itineraryData.planId;
-                const docRef = doc(db, "itinerary", itineraryId);
-                await setDoc(docRef, itineraryData);
-                return { status: 200, 
-                    message: "Itinerary scheduled successfully!",
-                    id: itineraryId,
-                };
-            } catch (error) {
-                console.error("Error scheduling itinerary:", error);
-                return { status: 500, error: "Internal Server Error" };
             }
         }
 

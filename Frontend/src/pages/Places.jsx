@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from "../components/Navbar";
-import { Loader, Mountain, Sun, Globe, Landmark, Building, Camera, Waves, Castle, Shell, TreePalm, Trees, Amphora, Hourglass } from "lucide-react";
+import { Loader, Mountain, Sun, Globe, Landmark, Building, Camera, Waves, Castle, Shell, TreePalm, Trees, Amphora } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,6 @@ const iconMap = {
   Water:Waves,
   Historical:Castle ,
   Island:Shell,
- 
 };
 
 const Places = () => {

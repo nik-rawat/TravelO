@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { initializeFirebaseApp } from "./src/controllers/lib/firebase.js";
+import { razorpay } from "./src/controllers/lib/razorpay.js";
 import { handler } from "./src/controllers/handler.js";
 initializeFirebaseApp();
 
@@ -16,6 +17,7 @@ import cors from 'cors';
 
 // Import multer for file upload
 import multer from 'multer';
+import { createOrder, verifyPayment } from './src/controllers/paymentController.js';
 const storage = multer.memoryStorage();
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -34,7 +36,13 @@ const app = express();
 
 // Middleware Setup
 app.use(bodyParser.json());
-app.use(cors({ origin: true }));
+const corsOptions = {
+  origin: true, // allow all routes and origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // allow only these methods
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.json());
@@ -256,10 +264,38 @@ app.delete('/api/remove-itinerary',async(req,res)=>{
   }
 })
 
-app.put('/api/book-itinerary',async(req,res)=>{
+app.post('/api/create-order', async (req, res) => {
   try {
-    const result = await handler(req, res, "PUT");
-    res.status(200).json(result);
+    const { amount, currency } = req.body;
+    const order = await createOrder(amount, currency);
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
+    res.status(500).json({ message: "Error creating order" });
+  }
+});
+
+app.get('/api/verify-payment/:paymentId', async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    if (!paymentId) {
+      return res.status(400).json({ message: "Missing paymentID" });
+    }
+    const paymentDetails = await verifyPayment(paymentId);
+    if (!paymentDetails) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+    res.status(200).json(paymentDetails);
+  } catch (error) {
+    console.error("Error verifying payment:", error);
+    res.status(500).json({ message: "Error verifying payment" });
+  }
+});
+
+app.post('/api/book-itinerary',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "POST");
+    res.status( result.status ).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
