@@ -543,19 +543,51 @@ export async function handler(req, res, method) {
             }
         }
 
+        if (path === '/api/unlike') {
+            try {
+                const { uid, reviewId } = req.body; // Get the user ID from the request body
+                console.log("Review ID: ", reviewId);
+                if (!reviewId) {
+                    return { status: 400, message: "Missing reviewId parameter" };
+                }
+                const docRef = doc(db, "reviews", reviewId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    return { status: 404, message: "Review not found" };
+                }
+                // maintain only one like per user
+                // check in the userLikes array if the user has already liked the review
+                const userLikes = docSnap.data().likes || [];
+                if (!userLikes.includes(uid)) {
+                    return { status: 400, message: "You have not liked this review yet" };
+                }
+                // Remove the user from the likes array
+                const reviewData = docSnap.data();
+                const likes = reviewData.likes || 0; // Get current likes or default to 0
+                await updateDoc(docRef, { likes: likes - 1 });
+                // Update the likes array by removing the user
+                const updatedLikes = userLikes.filter(userId => userId !== uid);
+                await updateDoc(docRef, { likes: updatedLikes });
+                return { status: 200, message: "Review unliked successfully!", likes: likes - 1 };
+            } catch (err) {
+                console.error("Error unliking review:", err);
+                return { status: 500, message: "Error unliking review" };
+            }
+        }
+
         if (path === '/api/flush') {
             try {
 
-                const reviews = req.body.reviews; // Get the array of reviews from the request body
-                // Validate the reviews array
-                if (!Array.isArray(reviews) || reviews.length === 0) {
-                    return { status: 400, message: "Invalid or empty reviews array" };
+                const places = req.body.places; // Get the array of places from the request body
+                // Validate the places array
+                if (!Array.isArray(places) || places.length === 0) {
+                    return { status: 400, message: "Invalid or empty places array" };
                 }
 
-                // Iterate over each place and create a document in the "reviews" collection
-                for (const review of reviews) {
-                    const docRef = doc(db, "reviews", review.reviewId);
-                    await setDoc(docRef, review);
+                // Iterate over each place and create a document in the "places" collection
+                for (const place of places) {
+                    const docRef = doc(db, "places", place.placeId);
+                    await setDoc(docRef, place);
                 }
                 console.log("Flush operation completed successfully");
 

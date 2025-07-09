@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock } from "lucide-react";
 import Navbar from "../components/Navbar";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -34,12 +35,6 @@ const ItineraryCardSkeleton = () => (
           <div className="h-8 bg-slate-700 rounded w-28"></div>
         </div>
 
-        {/* Duration Counter Placeholder */}
-        <div className="flex justify-between items-center">
-          <div className="h-5 bg-slate-700 rounded w-24"></div>
-          <div className="h-8 bg-slate-700 rounded w-28"></div>
-        </div>
-
         {/* Date Picker Placeholder */}
         <div className="h-10 bg-slate-700 rounded w-full"></div>
 
@@ -56,19 +51,18 @@ const ItineraryCardSkeleton = () => (
   </div>
 );
 
-
 const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => {
   const planDetails = detailedPlans[plan.planId];
   const isPlanDetailsLoading = !planDetails;
 
   return (
     <motion.div
-      className="bg-slate-900/50 backdrop-blur-sm border-slate-200/20 p-4 rounded-lg shadow-md"
+      className="bg-gradient-to-b from-slate-900 to-slate-950 backdrop-blur-sm border border-slate-800 rounded-lg shadow-md overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <CardHeader>
+      <CardHeader className="p-5 border-b border-slate-800 bg-slate-900/50">
         {isPlanDetailsLoading ? (
           <div className="animate-pulse">
             <div className="h-6 bg-slate-700 rounded w-3/4 mb-2"></div>
@@ -77,21 +71,37 @@ const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => {
           <CardTitle className="text-xl text-white">{planDetails.title}</CardTitle>
         )}
       </CardHeader>
-      <CardContent>
+      
+      <CardContent className="p-5">
         {isPlanDetailsLoading ? (
           <div className="animate-pulse">
             <div className="h-4 bg-slate-700 rounded w-full mb-2"></div>
             <div className="h-4 bg-slate-700 rounded w-5/6"></div>
           </div>
         ) : (
-          <p className="text-slate-400">{planDetails.description}</p>
+          <div className="mb-4">
+            <p className="text-slate-400 mb-4">{planDetails.description}</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge className="bg-blue-500/20 text-blue-300 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {planDetails.duration}
+              </Badge>
+              <Badge className="bg-green-500/20 text-green-300">
+                ₹{planDetails.price}
+              </Badge>
+              <Badge className="bg-orange-500/20 text-orange-300 flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                Max {planDetails.maxGroup} persons
+              </Badge>
+            </div>
+          </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between gap-4">
+      
+      <CardFooter className="flex flex-col border-t border-slate-800 bg-slate-900/30 p-5 gap-4">
         {isPlanDetailsLoading ? (
           <div className="animate-pulse w-full flex flex-col gap-4">
             <div className="h-5 bg-slate-700 rounded w-20"></div>
-            <div className="h-5 bg-slate-700 rounded w-24"></div>
             <div className="h-10 bg-slate-700 rounded w-full"></div>
             <div className="h-6 bg-slate-700 rounded w-36"></div>
             <div className="flex justify-between gap-4 pt-2">
@@ -109,10 +119,9 @@ const ItineraryCard = ({ plan, detailedPlans, buttonActions }) => {
 
 const ItineraryList = () => {
   const [itineraryData, setItineraryData] = useState([]);
-  const [loading, setLoading] = useState(true); // Overall loading for itineraryData
-  const [detailedPlans, setDetailedPlans] = useState({}); // Stores detailed plan info
+  const [loading, setLoading] = useState(true);
+  const [detailedPlans, setDetailedPlans] = useState({});
   const [personCounts, setPersonCounts] = useState({});
-  const [durations, setDurations] = useState({});
   const [scheduleDates, setScheduleDates] = useState({});
   const [amounts, setAmounts] = useState({});
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -126,19 +135,17 @@ const ItineraryList = () => {
   const uid = useSelector((state) => state.auth.uid);
 
   const fetchItineraryData = async () => {
-    setLoading(true); // Start overall loading
+    setLoading(true);
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/getItinerary/${uid}`);
       if (response.status === 200) {
         setItineraryData(response.data.data);
-        // Start fetching detailed plans concurrently, but don't block overall loading
         fetchDetailedPlans(response.data.data);
       }
     } catch (err) {
       console.error("Error fetching itinerary data:", err);
       toast.error("Failed to fetch your itineraries. Please try again later.");
     } finally {
-      // Overall loading ends here, even if detailed plans are still fetching
       setLoading(false);
     }
   };
@@ -147,7 +154,6 @@ const ItineraryList = () => {
     if (uid) {
       fetchItineraryData();
     }
-    // eslint-disable-next-line
   }, [uid]);
 
   const fetchDetailedPlans = async (plans) => {
@@ -158,7 +164,7 @@ const ItineraryList = () => {
         return { planId: plan.planId, data: planData };
       } catch (err) {
         console.error(`Error fetching detailed plan data for planId ${plan.planId}:`, err);
-        return { planId: plan.planId, data: null }; // Return null data if fetch fails
+        return { planId: plan.planId, data: null };
       }
     });
 
@@ -169,10 +175,8 @@ const ItineraryList = () => {
     results.forEach(({ planId, data }) => {
       if (data) {
         newDetailedPlans[planId] = data;
-        newInitialAmounts[planId] =
-          (data.price || 0) *
-          (durations[planId] || 1) *
-          (personCounts[planId] || 1);
+        // Calculate initial amount using plan's price and default person count (1)
+        newInitialAmounts[planId] = (data.price || 0) * (personCounts[planId] || 1);
       }
     });
 
@@ -183,36 +187,18 @@ const ItineraryList = () => {
   const handlePersonCount = (planId, increment) => {
     setPersonCounts((prevCounts) => {
       const currentCount = prevCounts[planId] || 1;
-      const newCount = increment ? currentCount + 1 : Math.max(1, currentCount - 1);
+      const maxGroup = detailedPlans[planId]?.maxGroup || 1;
+      const newCount = increment ? 
+        Math.min(maxGroup, currentCount + 1) : 
+        Math.max(1, currentCount - 1);
 
-      // Update amounts
+      // Update amounts - remove duration multiplication since we use plan's built-in duration
       setAmounts((prevAmounts) => ({
         ...prevAmounts,
-        [planId]:
-          (detailedPlans[planId]?.price || 0) *
-          newCount *
-          (durations[planId] || 1),
+        [planId]: (detailedPlans[planId]?.price || 0) * newCount,
       }));
 
       return { ...prevCounts, [planId]: newCount };
-    });
-  };
-
-  const handleDuration = (planId, increment) => {
-    setDurations((prevDurations) => {
-      const currentDuration = prevDurations[planId] || 1;
-      const newDuration = increment ? currentDuration + 1 : Math.max(1, currentDuration - 1);
-
-      // Update amounts
-      setAmounts((prevAmounts) => ({
-        ...prevAmounts,
-        [planId]:
-          (detailedPlans[planId]?.price || 0) *
-          (personCounts[planId] || 1) *
-          newDuration,
-      }));
-
-      return { ...prevDurations, [planId]: newDuration };
     });
   };
 
@@ -314,7 +300,9 @@ const ItineraryList = () => {
       return;
     }
 
-    const totalAmount = (detailedPlans[planId]?.price || 0) * (durations[planId] || 1) * (personCounts[planId] || 1);
+    const planDetails = detailedPlans[planId];
+    const totalAmount = (planDetails?.price || 0) * (personCounts[planId] || 1);
+    
     const bookingPromise = async () => {
       // 1. Create Razorpay order
       const orderRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/create-order`, {
@@ -342,8 +330,8 @@ const ItineraryList = () => {
               const verifyRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/verify-payment/${response.razorpay_payment_id}`);
               if (verifyRes.status === 200) {
                 const payload = {
-                  scheduled: scheduleDates[planId] ? format(scheduleDates[planId], "d MMMM silam 'at' HH:mm:ss 'UTC+5:30'") : "Not scheduled", // Date is now guaranteed
-                  duration: durations[planId] || 1,
+                  scheduled: scheduleDates[planId] ? format(scheduleDates[planId], "d MMMM yyyy 'at' HH:mm:ss 'UTC+5:30'") : "Not scheduled",
+                  duration: planDetails?.duration || "Not specified", // Use plan's duration
                   personCount: personCounts[planId] || 1,
                   totalAmount: totalAmount,
                   uid: uid,
@@ -388,7 +376,6 @@ const ItineraryList = () => {
     });
   };
 
-
   const handleRemovePlan = async (planId) => {
     const promise = axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/remove-itinerary`, {
       data: { uid, planId }
@@ -421,6 +408,13 @@ const ItineraryList = () => {
       }} />
       <div className="container mx-auto py-16 px-4">
         <motion.h1 className="text-4xl font-bold text-white mb-8 text-center">Your Itineraries</motion.h1>
+        
+        {/* Add this tagline section */}
+        <div className="text-center mb-12">
+          <p className="text-slate-300 max-w-2xl mx-auto">
+            Manage your travel plans and track your journey from planning to completion
+          </p>
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -449,7 +443,10 @@ const ItineraryList = () => {
                               <>
                                 <div className="flex flex-col gap-4 mt-4 w-full">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-white">Persons:</span>
+                                    <span className="text-white flex items-center gap-2">
+                                      <Users className="w-4 h-4" />
+                                      Persons:
+                                    </span>
                                     <div className="flex items-center gap-2">
                                       <Button
                                         onClick={() => handlePersonCount(currentPlan.planId, false)}
@@ -461,7 +458,7 @@ const ItineraryList = () => {
                                         key={personCounts[currentPlan.planId]}
                                         initial={{ scale: 0.8 }}
                                         animate={{ scale: 1 }}
-                                        className="text-white w-4 text-center"
+                                        className="text-white w-8 text-center"
                                       >
                                         {personCounts[currentPlan.planId] || 1}
                                       </motion.span>
@@ -475,30 +472,8 @@ const ItineraryList = () => {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-white">Duration:</span>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        onClick={() => handleDuration(currentPlan.planId, false)}
-                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                                      >
-                                        -
-                                      </Button>
-                                      <motion.span
-                                        key={durations[currentPlan.planId]}
-                                        initial={{ scale: 0.8 }}
-                                        animate={{ scale: 1 }}
-                                        className="text-white w-4 text-center"
-                                      >
-                                        {durations[currentPlan.planId] || 1}
-                                      </motion.span>
-                                      <Button
-                                        onClick={() => handleDuration(currentPlan.planId, true)}
-                                        className="h-8 w-8 rounded-full bg-gray-700 hover:bg-gray-600"
-                                      >
-                                        +
-                                      </Button>
-                                    </div>
+                                  <div className="text-center text-sm text-slate-400">
+                                    Maximum {detailedPlans[currentPlan.planId]?.maxGroup || 1} persons allowed
                                   </div>
 
                                   <Popover>
@@ -530,11 +505,15 @@ const ItineraryList = () => {
                                     </PopoverContent>
                                   </Popover>
 
-                                  <div className="flex items-center text-white font-semibold text-lg">
-                                    Total: ₹
-                                    <span>
-                                      {amounts[currentPlan.planId]?.toLocaleString('en-IN') || "0"}
+                                  <div className="flex items-center justify-between text-white font-semibold text-lg bg-slate-800/30 p-3 rounded-lg">
+                                    <span>Total Amount:</span>
+                                    <span className="text-green-400">
+                                      ₹{amounts[currentPlan.planId]?.toLocaleString('en-IN') || "0"}
                                     </span>
+                                  </div>
+
+                                  <div className="text-xs text-slate-400 text-center">
+                                    Price includes {detailedPlans[currentPlan.planId]?.duration} duration
                                   </div>
 
                                   <div className="flex justify-between gap-4">
@@ -556,13 +535,21 @@ const ItineraryList = () => {
                               </>
                             ) : category === "ongoing" ? (
                               <div className="flex flex-col gap-4 p-4 text-white rounded-lg w-full">
-                                Scheduled for: {currentPlan.scheduled ? currentPlan.scheduled : "Not scheduled"}
+                                <div className="text-sm text-slate-400">
+                                  Scheduled for: {currentPlan.scheduled ? currentPlan.scheduled : "Not scheduled"}
+                                </div>
+                                <div className="text-sm text-slate-400">
+                                  Duration: {detailedPlans[currentPlan.planId]?.duration || "Not specified"}
+                                </div>
                                 <Button className="bg-blue-500" onClick={() => handleCompleteItinerary(currentPlan.planId)}>
                                   Complete Itinerary
                                 </Button>
                               </div>
                             ) : (
                               <div className="flex flex-col gap-4 p-4 text-white rounded-lg w-full">
+                                <div className="text-sm text-slate-400 mb-2">
+                                  Completed • Duration: {detailedPlans[currentPlan.planId]?.duration || "Not specified"}
+                                </div>
                                 <Button onClick={() => handleGiveReview()}>Give Review</Button>
                                 <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen} className="bg-slate-900/50 backdrop-blur-sm">
                                   <DialogContent className="bg-slate-900/50 backdrop-blur-sm p-4 rounded-lg text-white border border-slate-200/20" aria-describedby="review-description">

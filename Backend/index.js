@@ -274,6 +274,16 @@ app.post('/api/like', async (req, res) => {
   }
 });
 
+app.post('/api/unlike', async (req, res) => {
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 app.post('/api/add-review', upload.single('file'),async(req,res)=>{
   try {
     const result = await handler(req, res, "POST");

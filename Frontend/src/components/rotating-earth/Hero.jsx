@@ -6,7 +6,7 @@ const Hero = () => {
 
   return (
     <Html 
-      position={[0, 7, 0]} 
+      position={[0, 7, -1]} 
       distanceFactor={4}   
       center  
       style={{

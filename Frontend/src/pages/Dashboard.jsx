@@ -332,17 +332,17 @@ return (
   <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <Navbar />
     <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
-      <Card className="w-full max-w-2xl bg-slate-800/50 backdrop-blur-sm border-slate-700">
-        <CardHeader className="flex flex-col items-center space-y-4 p-4 md:p-6">
+      <Card className="w-full max-w-2xl bg-gradient-to-b from-slate-900 to-slate-950 backdrop-blur-sm border border-slate-800 shadow-2xl">
+        <CardHeader className="flex flex-col items-center space-y-4 p-6 border-b border-slate-800">
           <div className="relative group">
             {user?.avatar ? (
               <img
                 src={user.avatar}
                 alt="User Avatar"
-                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl"
+                className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-700 shadow-xl"
               />
             ) : (
-              <User className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-600 shadow-xl text-slate-400" />
+              <User className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-slate-700 shadow-xl text-slate-400" />
             )}
 
             <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -368,38 +368,39 @@ return (
             {user?.username}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6 p-4 md:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
-                <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">First Name:</span>
-                    <EditableField field="fname" value={user.fname} />
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">Last Name:</span>
-                    <EditableField field="lname" value={user.lname} />
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">Email:</span>
-                    <EditableField field="email" value={user.email} type="email" />
-                </div>
-                </div>
-                <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">Age:</span>
-                    <EditableField field="age" value={user.age} type="number" />
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">Gender:</span>
-                    <EditableField field="gender" value={user.gender} type="select" />
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <span className="text-slate-400">Registered:</span>
-                    <span>{registrationDate}</span>
-                </div>
-                </div>
+        
+        <CardContent className="space-y-6 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">First Name:</span>
+                <EditableField field="fname" value={user.fname} />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">Last Name:</span>
+                <EditableField field="lname" value={user.lname} />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">Email:</span>
+                <EditableField field="email" value={user.email} type="email" />
+              </div>
             </div>
-            </CardContent>
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">Age:</span>
+                <EditableField field="age" value={user.age} type="number" />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">Gender:</span>
+                <EditableField field="gender" value={user.gender} type="select" />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <span className="text-slate-400">Registered:</span>
+                <span>{registrationDate}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
     </div>
 

@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import RotatingEarth from "./components/rotating-earth/rotating-earth"
 import Plans from "./pages/Plans"
 import Places from "./pages/Places"
-import Gallery from "./pages/Gallery"
 import Reviews from "./pages/Reviews"
 import Login from "./pages/Login"
 import Register from "./pages/Register" 
@@ -22,7 +21,6 @@ const App = () => {
           <Route path="/earth" element={<RotatingEarth />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/places" element={<Places />} />
-          <Route path="/gallery" element={<Gallery />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

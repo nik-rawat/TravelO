@@ -124,18 +124,10 @@ export default function RotatingEarth({ onLoaded }) {
   return (
     <div className="relative w-svw h-svh bg-gradient-to-b from-black via-slate-950 to-slate-900">
       {/* Navbar is a static DOM element, positioned above the Canvas */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 2, // Ensure Navbar is above Canvas
-          pointerEvents: "auto", // Ensure Navbar is clickable
-        }}
-      >
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", zIndex: 2 }}>
         <Navbar />
       </div>
+      
       <div className="">
         <Canvas
           // Camera position adjusted to frame the centered Hero and top of Earth

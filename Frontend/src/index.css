@@ -59,6 +59,7 @@
 
     --radius: 0.5rem
   }
+
   .dark {
 
     --background: 222.2 84% 4.9%;
@@ -115,15 +116,19 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(62, 139, 255, 0.3), 0 0 20px rgba(62, 139, 255, 0.2);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(62, 139, 255, 0.4), 0 0 30px rgba(62, 139, 255, 0.25);
   }
@@ -137,15 +142,19 @@
   0% {
     box-shadow: 0 0 25px 5px #8b5cf6;
   }
+
   25% {
     box-shadow: 0 0 30px 6px #3b82f6;
   }
+
   50% {
     box-shadow: 0 0 35px 7px #ec4899;
   }
+
   75% {
     box-shadow: 0 0 30px 6px #06b6d4;
   }
+
   100% {
     box-shadow: 0 0 25px 5px #8b5cf6;
   }
@@ -153,4 +162,22 @@
 
 .hover\\:animate-blackhole-glow:hover {
   animation: blackholeGlow 2s infinite ease-in-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, User, PlaneTakeoff } from "lucide-react"; // User icon for avatar
+import { Menu, User, PlaneTakeoff, LogOut } from "lucide-react"; // Added LogOut icon
 import { useSelector, useDispatch } from "react-redux";
 import { clearUid } from "@/redux/authSlice"; // Action to clear uid
 import { DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
@@ -18,7 +18,6 @@ const Navbar = () => {
   const navLinks = [
     { href: "/plans", label: "Plans" },
     { href: "/places", label: "Places" },
-    { href: "/gallery", label: "Gallery" },
     { href: "/reviews", label: "Reviews" },
   ];
 
@@ -84,22 +83,58 @@ const Navbar = () => {
         ))}
         {uid ? (
           <>
+            {/* Itinerary Button - Ocean Blue (Earth's water) */}
             <Link to="/itinerary">
-              <Button variant="primary" size="icon" className="hover:bg-gradient-to-r from-gray-900 to-blue-950 text-white hover:text-white transition ease-out duration-500">
-                <PlaneTakeoff className="h-6 w-6" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 
+                          text-white border border-cyan-500/30 shadow-lg shadow-cyan-500/20 
+                          hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 
+                          hover:scale-105 backdrop-blur-sm"
+              >
+                <PlaneTakeoff className="h-5 w-5" />
               </Button>
             </Link>
+            
+            {/* Profile Button - Forest Green (Earth's vegetation) */}
             <Link to="/dashboard">
-              <Button variant="primary" size="icon" className="hover:bg-gradient-to-r from-gray-600 to-gray-900 text-white hover:text-white transition ease-out duration-500">
-                <User className="h-6 w-6" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 
+                          text-white border border-emerald-500/30 shadow-lg shadow-emerald-500/20 
+                          hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 
+                          hover:scale-105 backdrop-blur-sm"
+              >
+                <User className="h-5 w-5" />
               </Button>
             </Link>
-            <Button variant="default" size="sm" onClick={handleLogout}>
-              Logout </Button>
+            
+            {/* Logout Button - Sunset Red (Earth's sunset) */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 
+                        text-white border border-red-500/30 shadow-lg shadow-red-500/20 
+                        hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300 
+                        hover:scale-105 backdrop-blur-sm flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </>
         ) : (
           <Link to="/login">
-            <Button variant="default" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="bg-gradient-to-r from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 
+                        text-white border border-teal-500/30 shadow-lg shadow-teal-500/20 
+                        hover:shadow-xl hover:shadow-teal-500/30 transition-all duration-300 
+                        hover:scale-105 backdrop-blur-sm"
+            >
               Login
             </Button>
           </Link>
@@ -113,15 +148,15 @@ const Navbar = () => {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-[300px]">
-          <DialogTitle className="sr-only">Navigation Menu</DialogTitle> {/* Visually hidden title */}
-          <DialogDescription className="sr-only">Access the navigation links and user actions</DialogDescription> {/* Visually hidden description */}
+        <SheetContent side="right" className="w-[300px] bg-slate-900 border-slate-700">
+          <DialogTitle className="sr-only">Navigation Menu</DialogTitle>
+          <DialogDescription className="sr-only">Access the navigation links and user actions</DialogDescription>
           <div className="flex flex-col space-y-4 pt-12">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="text-lg hover:text-primary transition"
+                className="text-lg text-white hover:text-blue-300 transition duration-300 p-2 rounded-md hover:bg-slate-800"
                 onClick={() => setIsOpen(false)}
               >
                 {link.label}
@@ -129,29 +164,64 @@ const Navbar = () => {
             ))}
             {uid ? (
               <>
-                <Link to="/itinerary">
-                  <Button variant="ghost" size="sm" className="w-full bg-gradient-to-r from-gray-400 to-blue-900 hover:from-blue-800 hover:to-blue-950 transition ease-out duration-500 text-black hover:text-white">
+                {/* Mobile Itinerary Button - Ocean Blue */}
+                <Link to="/itinerary" onClick={() => setIsOpen(false)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 
+                              text-white border border-cyan-500/30 shadow-lg shadow-cyan-500/20 
+                              hover:shadow-xl hover:shadow-cyan-500/30 transition-all duration-300 
+                              flex items-center gap-2"
+                  >
+                    <PlaneTakeoff className="h-4 w-4" />
                     Itinerary
                   </Button>
                 </Link>
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm" className="w-full bg-gradient-to-r from-gray-300 to-gray-500 hover:from-gray-500 hover:to-gray-900 transition ease-out duration-500 text-black hover:text-white">
+                
+                {/* Mobile Profile Button - Forest Green */}
+                <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 
+                              text-white border border-emerald-500/30 shadow-lg shadow-emerald-500/20 
+                              hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 
+                              flex items-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
                     Dashboard
                   </Button>
                 </Link>
+                
+                {/* Mobile Logout Button - Sunset Red */}
                 <Button
-                  className="w-full bg-gradient-to-r from-gray-400 to-red-600 hover:from-red-500 hover:to-red-800 transition ease-out duration-500 text-black hover:text-white"
+                  variant="ghost"
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 
+                            text-white border border-red-500/30 shadow-lg shadow-red-500/20 
+                            hover:shadow-xl hover:shadow-red-500/30 transition-all duration-300 
+                            flex items-center gap-2"
                   onClick={() => {
                     handleLogout();
                     setIsOpen(false);
                   }}
                 >
+                  <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </>
             ) : (
-              <Link to="/login">
-                <Button className="w-full">Login</Button>
+              <Link to="/login" onClick={() => setIsOpen(false)}>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="w-full bg-gradient-to-r from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 
+                            text-white border border-teal-500/30 shadow-lg shadow-teal-500/20 
+                            hover:shadow-xl hover:shadow-teal-500/30 transition-all duration-300"
+                >
+                  Login
+                </Button>
               </Link>
             )}
           </div>
