@@ -117,6 +117,7 @@ function Earth({ onLoaded }) {
       window.removeEventListener('touchmove', preventTouch);
       document.body.style.cursor = 'auto'; // Reset cursor on unmount
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
