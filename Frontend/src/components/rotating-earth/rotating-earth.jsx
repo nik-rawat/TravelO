@@ -35,10 +35,10 @@ function Earth({ onLoaded }) {
       // Apply momentum rotation if not dragging
       if (!dragState.current.isDragging) {
         meshRef.current.rotation.y += dragState.current.velocity;
-        // Decay the velocity over time for a smooth stop
-        dragState.current.velocity *= 0.95; // Adjust this factor for more/less friction
+        // Reduced friction - velocity decays much slower for longer momentum
+        dragState.current.velocity *= 0.992; // Increased from 0.95 to 0.992 for less friction
         // Stop decaying if velocity is very small to prevent infinite tiny rotations
-        if (Math.abs(dragState.current.velocity) < 0.0001) {
+        if (Math.abs(dragState.current.velocity) < 0.0005) { // Reduced threshold
           dragState.current.velocity = 0;
         }
       }
@@ -67,13 +67,13 @@ function Earth({ onLoaded }) {
     if (dragState.current.isDragging && meshRef.current) {
       const currentX = getEventX(event);
       const deltaX = currentX - dragState.current.lastX;
-      const sensitivity = 0.005; // Adjust sensitivity for drag speed
+      const sensitivity = 0.01; // Increased from 0.005 to 0.01 for more responsive dragging
 
       // Apply drag rotation directly
       meshRef.current.rotation.y += deltaX * sensitivity;
 
-      // Update velocity based on current drag speed
-      dragState.current.velocity = deltaX * sensitivity;
+      // Update velocity based on current drag speed with momentum multiplier
+      dragState.current.velocity = deltaX * sensitivity * 1.5; // Added momentum multiplier
 
       dragState.current.lastX = currentX;
     }
