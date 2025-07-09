@@ -45,17 +45,28 @@ function Earth({ onLoaded }) {
     }
   });
 
+  // Unified function to get X coordinate from both mouse and touch events
+  const getEventX = (event) => {
+    if (event.touches && event.touches.length > 0) {
+      return event.touches[0].clientX;
+    } else if (event.changedTouches && event.changedTouches.length > 0) {
+      return event.changedTouches[0].clientX;
+    }
+    return event.clientX;
+  };
+
   const handlePointerDown = (event) => {
     event.stopPropagation(); // Prevent other canvas elements from reacting
     dragState.current.isDragging = true;
-    dragState.current.lastX = event.clientX;
+    dragState.current.lastX = getEventX(event);
     dragState.current.velocity = 0; // Reset velocity when starting a new drag
     document.body.style.cursor = 'grabbing';
   };
 
   const handlePointerMove = (event) => {
     if (dragState.current.isDragging && meshRef.current) {
-      const deltaX = event.clientX - dragState.current.lastX;
+      const currentX = getEventX(event);
+      const deltaX = currentX - dragState.current.lastX;
       const sensitivity = 0.005; // Adjust sensitivity for drag speed
 
       // Apply drag rotation directly
@@ -64,7 +75,7 @@ function Earth({ onLoaded }) {
       // Update velocity based on current drag speed
       dragState.current.velocity = deltaX * sensitivity;
 
-      dragState.current.lastX = event.clientX;
+      dragState.current.lastX = currentX;
     }
   };
 
@@ -73,11 +84,25 @@ function Earth({ onLoaded }) {
     document.body.style.cursor = 'grab';
   };
 
-  // Add global event listeners for pointer move and up to ensure drag ends
-  // even if the mouse leaves the mesh while dragging.
+  // Add global event listeners for both mouse and touch events
   useEffect(() => {
+    // Mouse events
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
+    
+    // Touch events - these are crucial for mobile devices
+    window.addEventListener('touchmove', handlePointerMove, { passive: false });
+    window.addEventListener('touchend', handlePointerUp);
+    window.addEventListener('touchcancel', handlePointerUp);
+
+    // Prevent default touch behavior on the canvas to avoid scrolling
+    const preventTouch = (e) => {
+      if (dragState.current.isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('touchmove', preventTouch, { passive: false });
 
     // Set initial cursor style
     document.body.style.cursor = 'grab';
@@ -86,6 +111,10 @@ function Earth({ onLoaded }) {
       // Clean up event listeners when component unmounts
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('touchmove', handlePointerMove);
+      window.removeEventListener('touchend', handlePointerUp);
+      window.removeEventListener('touchcancel', handlePointerUp);
+      window.removeEventListener('touchmove', preventTouch);
       document.body.style.cursor = 'auto'; // Reset cursor on unmount
     };
   }, []);
@@ -93,10 +122,11 @@ function Earth({ onLoaded }) {
   return (
     <a.mesh
       ref={meshRef}
-      // Earth's position set to [0, 0, 0] relative to its parent group
-      position={[0, 0, 0]}
+      // Earth positioned behind the Hero content
+      position={[0, 0, -2]}
       name="earth"
-      onPointerDown={handlePointerDown} // Only attach pointer down to the mesh
+      onPointerDown={handlePointerDown}
+      onTouchStart={handlePointerDown}
     >
       <sphereGeometry args={[5, 64, 64]} />
       <meshStandardMaterial
@@ -131,7 +161,7 @@ export default function RotatingEarth({ onLoaded }) {
       <div className="">
         <Canvas
           // Camera position adjusted to frame the centered Hero and top of Earth
-          camera={{ position: [0, 0, 6], fov: 40 }}
+          camera={{ position: [0, 0, 6], fov: 20 }}
           gl={{ antialias: true }}
           dpr={window.devicePixelRatio}
           style={{
@@ -141,16 +171,22 @@ export default function RotatingEarth({ onLoaded }) {
             width: "100%",
             height: "100%",
             zIndex: 1, // Canvas stays below Navbar
+            touchAction: "none" // Prevent default touch actions on the canvas
           }}
         >
           <ambientLight intensity={2.5} />
           <pointLight position={[10, 10, 20]} intensity={100} />
 
-          {/* This a.group applies the initial scale and rotation animation to the Earth.
-              Its position is adjusted to move the Earth downwards. */}
-          <a.group rotation-y={spring.rotation} scale={spring.scale} position={[0, -2.5, 2]}>
-            <Hero /> {/* Render the actual Hero component content */}
-            <Earth onLoaded={onLoaded} /> {/* The Earth mesh */}
+          {/* This a.group applies the initial scale and rotation animation to both components.
+              Position adjusted to center the content properly. */}
+          <a.group rotation-y={spring.rotation} scale={spring.scale} position={[0, -2.5, 0]}>
+            {/* Hero component positioned in front (closer to camera) */}
+            <group position={[0, 0, 2]}>
+              <Hero />
+            </group>
+            
+            {/* Earth mesh positioned behind the Hero content */}
+            <Earth onLoaded={onLoaded} />
           </a.group>
 
           {/* Stars background, also a direct child of Canvas */}
@@ -162,7 +198,7 @@ export default function RotatingEarth({ onLoaded }) {
             saturation={0}
             fade
             speed={1.5}
-            />
+          />
         </Canvas>
       </div>
     </div>

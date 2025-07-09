@@ -6,16 +6,11 @@ const Hero = () => {
 
   return (
     <Html 
-      position={[0, 7, -1]} 
+      position={[0, 7, -10]} 
       distanceFactor={4}   
       center  
       style={{
         width: '100vw', 
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
         boxSizing: 'border-box',
         margin: 0,
         padding: 0,
