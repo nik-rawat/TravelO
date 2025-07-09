@@ -69,6 +69,22 @@ export const updateUser = async (data) => {
     }
 };
 
+// get user reviews using its uid
+export const getUserReviews = async (uid) => {
+    try {
+        const collectionRef = collection(db, "reviews");
+        const q = query(collectionRef, where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+        const reviews = [];
+        querySnapshot.forEach((doc) => {
+            reviews.push(doc.data());
+        });
+        return reviews;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 // Get all documents from a collection
 export const getCollection = async (collection) => {
     try {

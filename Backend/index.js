@@ -227,12 +227,52 @@ app.post('/api/add-plan',async(req,res)=>{
 app.get('/api/getPlan/:planId',async(req,res)=>{
   try {
     const result = await handler(req, res, "GET");
-    res.status(200).json(result);
+    res.status(result.status).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 })
+
+app.get('/api/getPlace/:placeId',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getPlanReviews/:planId',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/api/getPlansFromPlace/:placeId',async(req,res)=>{
+  try {
+    const result = await handler(req, res, "GET");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
+app.post('/api/like', async (req, res) => {
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.post('/api/add-review', upload.single('file'),async(req,res)=>{
   try {
@@ -321,6 +361,17 @@ app.get('/api/getItinerary/:uid',async(req,res)=>{
     res.status(500).json({ message: "Server error" });
   }
 })
+
+app.post('/api/flush', async(req, res) => {
+  try {
+    const result = await handler(req, res, "POST");
+    res.status(result.status).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+})
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

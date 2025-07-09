@@ -1,4 +1,4 @@
-import { addUser, getUser, updateUser } from "./userController.js";
+import { addUser, getUser, getUserReviews, updateUser } from "./userController.js";
 import { URL } from 'url';
 import { login, forgotPassword, registerWithAuth } from "./authController.js";
 // import { authenticate } from "./authMiddleware.js";
@@ -77,7 +77,7 @@ export async function handler(req, res, method) {
         if (path === "/api/getReviews") {
             try {
                 const reviews = [];
-                const usersCollection = collection(db, "review");
+                const usersCollection = collection(db, "reviews");
                 const usersSnapshot = await getDocs(usersCollection);
                 usersSnapshot.forEach((doc) => {
                     reviews.push(doc.data());
@@ -181,12 +181,12 @@ export async function handler(req, res, method) {
             try {
                 const uid = req.params.uid;
                 console.log("UID: ", uid);
-        
+
                 // Validate UID
                 if (!uid) {
                     return { status: 400, message: "Missing uid parameter" };
                 }
-        
+
                 // Fetch user data from Firestore (or any other source)
                 const q = query(collection(db, "itinerary"), where("uid", "==", uid));
                 const querySnapshot = await getDocs(q);
@@ -194,9 +194,9 @@ export async function handler(req, res, method) {
                 querySnapshot.forEach((doc) => {
                     userData.push(doc.data());
                 });
-                
+
                 console.log("Fetched User Data:", userData); // Log fetched data
-        
+
                 // Return success response with user data
                 return { status: 200, data: userData };
             } catch (err) {
@@ -226,8 +226,72 @@ export async function handler(req, res, method) {
             }
         }
 
+        if (path === "/api/getPlace/" + req.params.placeId) {
+            try {
+                const placeId = req.params.placeId;
+                console.log("Place ID: ", placeId);
+                if (!placeId) {
+                    return { status: 400, message: "Missing placeId parameter" };
+                }
+                const docRef = doc(db, "places", placeId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    return { status: 404, message: "Place not found" };
+                }
+                const placeData = docSnap.data();
+                console.log("Fetched Place Data:", placeData);
+                return { status: 200, data: placeData };
+            } catch (err) {
+                console.error("Error fetching place data:", err);
+                return { status: 500, message: "Error fetching place data" };
+            }
+        }
+
+        if (path === "/api/getPlanReviews/" + req.params.planId) {
+            try {
+                const planId = req.params.planId;
+                console.log("Plan ID: ", planId);
+                if (!planId) {
+                    return { status: 400, message: "Missing planId parameter" };
+                }
+                const q = query(collection(db, "reviews"), where("planId", "==", planId));
+                const querySnapshot = await getDocs(q);
+                const reviews = [];
+                querySnapshot.forEach((doc) => {
+                    reviews.push(doc.data());
+                });
+                console.log("Fetched Reviews:", reviews);
+                return { status: 200, data: reviews };
+            } catch (err) {
+                console.error("Error fetching plan reviews:", err);
+                return { status: 500, message: "Error fetching plan reviews" };
+            }
+        }
+
+        if (path === "/api/getPlansFromPlace/" + req.params.placeId) {
+            try {
+                const placeId = req.params.placeId;
+                console.log("Place ID: ", placeId);
+                if (!placeId) {
+                    return { status: 400, message: "Missing placeId parameter" };
+                }
+                const q = query(collection(db, "plans"), where("placeId", "==", placeId));
+                const querySnapshot = await getDocs(q);
+                const plans = [];
+                querySnapshot.forEach((doc) => {
+                    plans.push(doc.data());
+                });
+                console.log("Fetched Plans:", plans);
+                return { status: 200, data: plans };
+            } catch (err) {
+                console.error("Error fetching plans from place:", err);
+                return { status: 500, message: "Error fetching plans from place" };
+            }
+        }
+
+
     }
-    
+
 
     // Handle POST requests
     if (method === "POST") {
@@ -242,7 +306,7 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error registering user" };
             }
         }
-        
+
 
         if (path === "/api/login") {
             try {
@@ -260,7 +324,7 @@ export async function handler(req, res, method) {
         }
         if (path === '/api/add-plan') {
             try {
-                const planData = req.body; 
+                const planData = req.body;
                 // Check if required fields are provided
                 if (!planData.title || !planData.description || !planData.price) {
                     return { status: 400, error: "Title, description, and price are required." };
@@ -274,19 +338,20 @@ export async function handler(req, res, method) {
                 return { status: 500, error: "Internal Server Error" };
             }
         }
-        
+
         if (path === '/api/add-place') {
             try {
-                const placeData = req.body; 
+                const placeData = req.body;
                 if (!placeData.title || !placeData.description) {
                     return { status: 400, error: "Title and description are required." };
                 }
-                const placeId = placeData.placeId; 
+                const placeId = placeData.placeId;
                 const docRef = doc(db, "places", placeId);
                 await setDoc(docRef, placeData);
-                return { status: 201,
+                return {
+                    status: 201,
                     message: "Place added successfully!",
-                    id: placeId, 
+                    id: placeId,
                 };
             } catch (error) {
                 console.error("Error adding place:", error);
@@ -316,8 +381,8 @@ export async function handler(req, res, method) {
                 const filename = `${uid}-${planId}-${dateString}`;
                 const image = await upload_img(fileBuffer, file.originalname, metadata, "gallery", filename);
 
-                const reviewId = `${uid}-${planId}-${dateString}`; 
-                const docRef = doc(db, "review", reviewId);
+                const reviewId = `${uid}-${planId}-${dateString}`;
+                const docRef = doc(db, "reviews", reviewId);
                 const reviewData = {
                     reviewId,
                     uid,
@@ -327,11 +392,12 @@ export async function handler(req, res, method) {
                     rating,
                     image,
                     createdAt: new Date().toISOString(),
-                }; 
+                };
                 await setDoc(docRef, reviewData);
-                return { status: 201,
+                return {
+                    status: 201,
                     message: "review added successfully!",
-                    id: reviewId, 
+                    id: reviewId,
                 };
             } catch (error) {
                 console.error("Error adding place:", error);
@@ -355,7 +421,7 @@ export async function handler(req, res, method) {
                 }
 
                 await setDoc(docRef, itineraryData);
-                return { status: 201, message: "Itinerary scheduled successfully!", id: itineraryId,}
+                return { status: 201, message: "Itinerary scheduled successfully!", id: itineraryId, }
             } catch (error) {
                 console.error("Error scheduling itinerary:", error);
                 return { status: 500, error: "Internal Server Error" };
@@ -378,7 +444,8 @@ export async function handler(req, res, method) {
                 const itineraryId = itineraryData.uid + itineraryData.planId;
                 const docRef = doc(db, "itinerary", itineraryId);
                 await setDoc(docRef, itineraryData);
-                return { status: 200, 
+                return {
+                    status: 200,
                     message: "Itinerary scheduled successfully!",
                     id: itineraryId,
                 };
@@ -426,7 +493,7 @@ export async function handler(req, res, method) {
                     contentType: file.mimetype,
                     filename: file.originalname,
                 }
-                const { uid } = req.body; 
+                const { uid } = req.body;
                 const dateString = new Date().toISOString().replace(/[:.]/g, '-');
                 const filename = `${dateString}-${file.originalname}`;
                 const link = await upload_img(fileBuffer, file.originalname, metadata, "gallery", filename);
@@ -442,6 +509,63 @@ export async function handler(req, res, method) {
                 return { status: 500, message: "Error uploading avatar" };
             }
         }
+
+        if (path === '/api/like') {
+            try {
+                const { uid, reviewId } = req.body; // Get the user ID from the request body
+                console.log("Review ID: ", reviewId);
+                if (!reviewId) {
+                    return { status: 400, message: "Missing reviewId parameter" };
+                }
+                const docRef = doc(db, "reviews", reviewId);
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    return { status: 404, message: "Review not found" };
+                }
+
+                // maintain only one like per user
+                // check in the userLikes array if the user has already liked the review
+                const userLikes = docSnap.data().likes || [];
+                if (userLikes.includes(uid)) {
+                    return { status: 400, message: "You have already liked this review" };
+                }
+                // Add the user to the likes array
+
+                const reviewData = docSnap.data();
+                const likes = reviewData.likes || 0; // Get current likes or default to 0
+                await updateDoc(docRef, { likes: likes + 1 });
+                // Update the likes array with the new user
+                await updateDoc(docRef, { likes: [...userLikes, uid] });
+                return { status: 200, message: "Review liked successfully!", likes: likes + 1 };
+            } catch (err) {
+                console.error("Error liking review:", err);
+                return { status: 500, message: "Error liking review" };
+            }
+        }
+
+        if (path === '/api/flush') {
+            try {
+
+                const reviews = req.body.reviews; // Get the array of reviews from the request body
+                // Validate the reviews array
+                if (!Array.isArray(reviews) || reviews.length === 0) {
+                    return { status: 400, message: "Invalid or empty reviews array" };
+                }
+
+                // Iterate over each place and create a document in the "reviews" collection
+                for (const review of reviews) {
+                    const docRef = doc(db, "reviews", review.reviewId);
+                    await setDoc(docRef, review);
+                }
+                console.log("Flush operation completed successfully");
+
+                return { status: 200, message: "Flush operation completed successfully" };
+            } catch (error) {
+                console.error("Error flushing data:", error);
+                return { status: 500, error: "Internal Server Error" };
+            }
+        }
+
     }
 
     // Handle PUT requests
@@ -460,7 +584,7 @@ export async function handler(req, res, method) {
                     contentType: file.mimetype,
                     filename: file.originalname,
                 }
-                const { uid } = req.body; 
+                const { uid } = req.body;
                 const avatar = await upload_img(fileBuffer, file.originalname, metadata, "pfp", uid);
                 if (!req.body || !req.body.uid) {
                     return { status: 400, message: "Missing uid parameter" };
@@ -501,7 +625,8 @@ export async function handler(req, res, method) {
                 }
                 await updateDoc(docRef, { status: "completed" });
 
-                return { status: 200, 
+                return {
+                    status: 200,
                     message: "Itinerary completion successfully!",
                     id: itineraryId,
                 };
