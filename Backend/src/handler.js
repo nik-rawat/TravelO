@@ -4,7 +4,7 @@ import { login, forgotPassword, registerWithAuth } from "./controllers/authContr
 // import { authenticate } from "./authMiddleware.js";
 import { upload_img } from "./lib/upload.js";
 import { updateDoc, doc, collection, getDocs, addDoc, setDoc, getDoc, query, where, deleteDoc } from "firebase/firestore";
-import { db, model } from "./lib/firebase.js"; // Import db from Firebase initialization
+import { db } from "./lib/firebase.js"; // Import db from Firebase initialization
 
 export async function handler(req, res, method) {
     const url = new URL(req.url, 'http://example.com'); // or any other base URL
@@ -598,180 +598,180 @@ export async function handler(req, res, method) {
             }
         }
 
-        // AI poweered request
-        if (path === '/api/getRecommendations') {
-            try {
-                const { uid } = req.body; // Get the user ID from the request body
+        // // AI poweered request
+        // if (path === '/api/getRecommendations') {
+        //     try {
+        //         const { uid } = req.body; // Get the user ID from the request body
 
-                if (!uid) {
-                    return { status: 400, message: "Missing uid parameter" };
-                }
+        //         if (!uid) {
+        //             return { status: 400, message: "Missing uid parameter" };
+        //         }
 
-                // Get user's past bookings and liked reviews
-                const userBookings = await getBookedItineraries(uid);
-                const userLikedReviews = await getLikedReviews(uid);
+        //         // Get user's past bookings and liked reviews
+        //         const userBookings = await getBookedItineraries(uid);
+        //         const userLikedReviews = await getLikedReviews(uid);
 
-                // Fetch available places and plans for recommendations
-                const placesSnapshot = await getDocs(collection(db, "places"));
-                const places = [];
-                placesSnapshot.forEach((doc) => places.push(doc.data()));
+        //         // Fetch available places and plans for recommendations
+        //         const placesSnapshot = await getDocs(collection(db, "places"));
+        //         const places = [];
+        //         placesSnapshot.forEach((doc) => places.push(doc.data()));
 
-                const plansSnapshot = await getDocs(collection(db, "plans"));
-                const plans = [];
-                plansSnapshot.forEach((doc) => plans.push(doc.data()));
+        //         const plansSnapshot = await getDocs(collection(db, "plans"));
+        //         const plans = [];
+        //         plansSnapshot.forEach((doc) => plans.push(doc.data()));
 
-                // Construct a prompt for the AI model
-                const promptText = `
-                Based on this user's travel history and preferences, recommend 3-5 travel destinations.
+        //         // Construct a prompt for the AI model
+        //         const promptText = `
+        //         Based on this user's travel history and preferences, recommend 3-5 travel destinations.
                 
-                User's past bookings: ${JSON.stringify(userBookings)}
-                User's reviews: ${JSON.stringify(userLikedReviews)}
+        //         User's past bookings: ${JSON.stringify(userBookings)}
+        //         User's reviews: ${JSON.stringify(userLikedReviews)}
                 
-                Available places: ${JSON.stringify(places.map(p => ({ id: p.placeId, name: p.title, location: p.location })))}
-                Available plans: ${JSON.stringify(plans.map(p => ({ id: p.planId, title: p.title, placeId: p.placeId })))}
+        //         Available places: ${JSON.stringify(places.map(p => ({ id: p.placeId, name: p.title, location: p.location })))}
+        //         Available plans: ${JSON.stringify(plans.map(p => ({ id: p.planId, title: p.title, placeId: p.placeId })))}
                 
-                For each recommendation, include:
-                1. Place name
-                2. Why it matches their preferences
-                3. Suggested plan ID (if applicable)
+        //         For each recommendation, include:
+        //         1. Place name
+        //         2. Why it matches their preferences
+        //         3. Suggested plan ID (if applicable)
                 
-                Format as JSON with an array of recommendations.
-                `;
+        //         Format as JSON with an array of recommendations.
+        //         `;
 
-                // Generate recommendations using the AI model
-                const result = await model.generateContent(promptText);
-                const response = await result.response;
-                const text = response.text();
+        //         // Generate recommendations using the AI model
+        //         const result = await model.generateContent(promptText);
+        //         const response = await result.response;
+        //         const text = response.text();
 
-                // Parse the AI response (assuming it returns properly formatted JSON)
-                let recommendations;
-                try {
-                    const cleanedText = text.replace(/```json|```/g, '').trim();
-                    console.log("AI response:", cleanedText);
-                    const parsedResponse = JSON.parse(cleanedText);
+        //         // Parse the AI response (assuming it returns properly formatted JSON)
+        //         let recommendations;
+        //         try {
+        //             const cleanedText = text.replace(/```json|```/g, '').trim();
+        //             console.log("AI response:", cleanedText);
+        //             const parsedResponse = JSON.parse(cleanedText);
 
-                    // Handle different response formats
-                    if (Array.isArray(parsedResponse)) {
-                        // If the response is an array, wrap it in an object
-                        recommendations = { recommendations: parsedResponse };
-                    } else if (parsedResponse && typeof parsedResponse === 'object') {
-                        // If it's already an object, check if it has recommendations property
-                        if (Array.isArray(parsedResponse.recommendations)) {
-                            recommendations = parsedResponse;
-                        } else {
-                            // If it's an object without recommendations array, wrap it
-                            recommendations = { recommendations: [parsedResponse] };
-                        }
-                    } else {
-                        throw new Error("Invalid AI response format");
-                    }
+        //             // Handle different response formats
+        //             if (Array.isArray(parsedResponse)) {
+        //                 // If the response is an array, wrap it in an object
+        //                 recommendations = { recommendations: parsedResponse };
+        //             } else if (parsedResponse && typeof parsedResponse === 'object') {
+        //                 // If it's already an object, check if it has recommendations property
+        //                 if (Array.isArray(parsedResponse.recommendations)) {
+        //                     recommendations = parsedResponse;
+        //                 } else {
+        //                     // If it's an object without recommendations array, wrap it
+        //                     recommendations = { recommendations: [parsedResponse] };
+        //                 }
+        //             } else {
+        //                 throw new Error("Invalid AI response format");
+        //             }
 
-                    // Ensure recommendations has the expected structure and is an array
-                    if (!recommendations || !recommendations.recommendations || !Array.isArray(recommendations.recommendations)) {
-                        throw new Error("Invalid AI response structure");
-                    }
-                } catch (err) {
-                    console.error("Error parsing AI response:", err);
-                    recommendations = {
-                        recommendations: [
-                            // Fallback recommendations in case parsing fails
-                            {
-                                placeName: places[0]?.title || "Popular Destination",
-                                reason: "Popular destination you might enjoy based on your interests",
-                                placeId: places[0]?.placeId
-                            }
-                        ]
-                    };
-                }
+        //             // Ensure recommendations has the expected structure and is an array
+        //             if (!recommendations || !recommendations.recommendations || !Array.isArray(recommendations.recommendations)) {
+        //                 throw new Error("Invalid AI response structure");
+        //             }
+        //         } catch (err) {
+        //             console.error("Error parsing AI response:", err);
+        //             recommendations = {
+        //                 recommendations: [
+        //                     // Fallback recommendations in case parsing fails
+        //                     {
+        //                         placeName: places[0]?.title || "Popular Destination",
+        //                         reason: "Popular destination you might enjoy based on your interests",
+        //                         placeId: places[0]?.placeId
+        //                     }
+        //                 ]
+        //             };
+        //         }
 
-                // Enhance recommendations with full place and plan details
-                const enhancedRecommendations = recommendations.recommendations.map(rec => {
-                    // Convert fields to consistent format (handle variation in field names)
-                    const placeName = rec.placeName || rec["Place name"] || "";
-                    const reason = rec.reason || rec["Why it matches their preferences"] || "";
-                    const suggestedPlanId = rec.suggestedPlanId || rec["Suggested plan ID"] || "";
+        //         // Enhance recommendations with full place and plan details
+        //         const enhancedRecommendations = recommendations.recommendations.map(rec => {
+        //             // Convert fields to consistent format (handle variation in field names)
+        //             const placeName = rec.placeName || rec["Place name"] || "";
+        //             const reason = rec.reason || rec["Why it matches their preferences"] || "";
+        //             const suggestedPlanId = rec.suggestedPlanId || rec["Suggested plan ID"] || "";
 
-                    // Find matching place by name
-                    const place = places.find(p =>
-                        (placeName && p.title && p.title.toLowerCase().includes(placeName.toLowerCase())) ||
-                        p.placeId === rec.placeId
-                    );
+        //             // Find matching place by name
+        //             const place = places.find(p =>
+        //                 (placeName && p.title && p.title.toLowerCase().includes(placeName.toLowerCase())) ||
+        //                 p.placeId === rec.placeId
+        //             );
 
-                    // Find suggested plans either by ID or for this place
-                    let suggestedPlans = [];
-                    if (suggestedPlanId) {
-                        const specificPlan = plans.find(p => p.planId === suggestedPlanId);
-                        if (specificPlan) suggestedPlans = [specificPlan];
-                    } else if (place) {
-                        suggestedPlans = plans.filter(p => p.placeId === place.placeId);
-                    }
+        //             // Find suggested plans either by ID or for this place
+        //             let suggestedPlans = [];
+        //             if (suggestedPlanId) {
+        //                 const specificPlan = plans.find(p => p.planId === suggestedPlanId);
+        //                 if (specificPlan) suggestedPlans = [specificPlan];
+        //             } else if (place) {
+        //                 suggestedPlans = plans.filter(p => p.placeId === place.placeId);
+        //             }
 
-                    return {
-                        placeName,
-                        reason,
-                        suggestedPlanId,
-                        placeDetails: place || {},
-                        suggestedPlans: suggestedPlans || []
-                    };
-                });
+        //             return {
+        //                 placeName,
+        //                 reason,
+        //                 suggestedPlanId,
+        //                 placeDetails: place || {},
+        //                 suggestedPlans: suggestedPlans || []
+        //             };
+        //         });
 
-                return {
-                    status: 200,
-                    data: {
-                        recommendations: enhancedRecommendations,
-                        generatedAt: new Date().toISOString()
-                    }
-                };
-            } catch (error) {
-                console.error("Error generating recommendations:", error);
-                return {
-                    status: 500,
-                    error: "Failed to generate recommendations",
-                    message: error.message
-                };
-            }
-        }
-        if (path === '/api/generate-itinerary') {
-            try {
-                const { destination, duration, interests, budget } = req.body;
-                if (!destination || !duration || !interests || !budget) {
-                    return { status: 400, message: "Missing required fields" };
-                }
-                // Construct a prompt for the AI model
-                const promptText = `Generate a detailed travel itinerary for a trip to ${destination} for ${duration} days.
-                The itinerary should include:
-                1. Daily activities and places to visit
-                2. Recommended restaurants and dining options
-                3. Estimated costs for each activity and meal
-                4. Transportation options and costs
-                5. Accommodation suggestions
-                6. Any special events or festivals happening during the trip
-                The itinerary should be tailored to the following interests: ${interests.join(", ")}.
-                The budget for the trip is ${budget}. Please provide the itinerary in JSON format.`;
-                // Generate itinerary using the AI model
-                const result = await model.generateContent(promptText);
-                const response = await result.response;
-                const text = await response.text();
-                // Parse the AI response (assuming it returns properly formatted JSON)
-                let generatedItinerary;
-                try {
-                    generatedItinerary = JSON.parse(text);
-                } catch (err) {
-                    console.error("Error parsing AI response:", err);
-                    return { staus: 422, message: "Failed to parse AI response" };
-                }
-                // Ensure the generated itinerary has the expected structure
-                if (!generatedItinerary || typeof generatedItinerary !== 'object') {
-                    return { staus: 422, message: "Invalid itinerary format" };
-                }
-                // Return the generated itinerary
-                console.log("Generated Itinerary:", generatedItinerary);
-                return { status: 200, itinerary: generatedItinerary };
-            } catch (err) {
-                console.error(err);
-                return { status: 500, message: "Failed to generate itinerary" };
-            }
-        }
+        //         return {
+        //             status: 200,
+        //             data: {
+        //                 recommendations: enhancedRecommendations,
+        //                 generatedAt: new Date().toISOString()
+        //             }
+        //         };
+        //     } catch (error) {
+        //         console.error("Error generating recommendations:", error);
+        //         return {
+        //             status: 500,
+        //             error: "Failed to generate recommendations",
+        //             message: error.message
+        //         };
+        //     }
+        // }
+        // if (path === '/api/generate-itinerary') {
+        //     try {
+        //         const { destination, duration, interests, budget } = req.body;
+        //         if (!destination || !duration || !interests || !budget) {
+        //             return { status: 400, message: "Missing required fields" };
+        //         }
+        //         // Construct a prompt for the AI model
+        //         const promptText = `Generate a detailed travel itinerary for a trip to ${destination} for ${duration} days.
+        //         The itinerary should include:
+        //         1. Daily activities and places to visit
+        //         2. Recommended restaurants and dining options
+        //         3. Estimated costs for each activity and meal
+        //         4. Transportation options and costs
+        //         5. Accommodation suggestions
+        //         6. Any special events or festivals happening during the trip
+        //         The itinerary should be tailored to the following interests: ${interests.join(", ")}.
+        //         The budget for the trip is ${budget}. Please provide the itinerary in JSON format.`;
+        //         // Generate itinerary using the AI model
+        //         const result = await model.generateContent(promptText);
+        //         const response = await result.response;
+        //         const text = await response.text();
+        //         // Parse the AI response (assuming it returns properly formatted JSON)
+        //         let generatedItinerary;
+        //         try {
+        //             generatedItinerary = JSON.parse(text);
+        //         } catch (err) {
+        //             console.error("Error parsing AI response:", err);
+        //             return { staus: 422, message: "Failed to parse AI response" };
+        //         }
+        //         // Ensure the generated itinerary has the expected structure
+        //         if (!generatedItinerary || typeof generatedItinerary !== 'object') {
+        //             return { staus: 422, message: "Invalid itinerary format" };
+        //         }
+        //         // Return the generated itinerary
+        //         console.log("Generated Itinerary:", generatedItinerary);
+        //         return { status: 200, itinerary: generatedItinerary };
+        //     } catch (err) {
+        //         console.error(err);
+        //         return { status: 500, message: "Failed to generate itinerary" };
+        //     }
+        // }
     }
 
     // Handle PUT requests
