@@ -404,6 +404,40 @@ app.post('/api/flush', async(req, res) => {
 //   }
 // });
 
+app.post('/api/verify-google-user', async (req, res) => {
+  try {
+    const userData = req.body;
+    
+    if (!userData || !userData.uid || !userData.email) {
+      return res.status(400).json({ message: "Invalid user data" });
+    }
+    
+    // Check if the user already exists in your database
+    const existingUser = await getUser({ uid: userData.uid });
+    
+    if (!existingUser) {
+      // Create a new user record
+      const newUserData = {
+        uid: userData.uid,
+        email: userData.email,
+        username: userData.email.split('@')[0], // Basic username from email
+        fname: userData.displayName?.split(' ')[0] || '',
+        lname: userData.displayName?.split(' ').slice(1).join(' ') || '',
+        avatar: userData.photoURL || "https://firebasestorage.googleapis.com/v0/b/travelo-b3a59.appspot.com/o/images%2Fprof.png?alt=media&token=cba32a15-af9b-4256-acbe-2cdb1d0a75b4",
+        registeredOn: new Date(),
+        age: "",
+        gender: "prefer not to say"
+      };
+      
+      await addUser(newUserData);
+    }
+    
+    res.status(200).json({ message: "User verified successfully", uid: userData.uid });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error verifying Google user" });
+  }
+});
 
 // Start the server
 app.listen(PORT, () => {
