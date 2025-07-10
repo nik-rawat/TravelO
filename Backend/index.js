@@ -18,6 +18,7 @@ import cors from 'cors';
 // Import multer for file upload
 import multer from 'multer';
 import { createOrder, verifyPayment } from './src/controllers/paymentController.js';
+import { addUser, getUser } from './src/controllers/userController.js';
 const storage = multer.memoryStorage();
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
