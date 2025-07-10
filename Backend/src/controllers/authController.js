@@ -1,4 +1,4 @@
-import { auth, provider } from "./lib/firebase.js";
+import { auth, provider } from "../lib/firebase.js";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, fetchSignInMethodsForEmail, signInWithPopup } from "firebase/auth";
 import { addUser } from "./userController.js";
 

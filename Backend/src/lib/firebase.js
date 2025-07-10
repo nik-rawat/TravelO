@@ -3,6 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
+
 // import { getAnalytics } from "firebase/analytics";
 
 import dotenv from 'dotenv';
@@ -33,6 +35,8 @@ let db;
 let auth;
 let provider;
 let storage;
+let genAI;
+let model;
 
 // Initialize Firebase
 export const initializeFirebaseApp = async () => {
@@ -42,10 +46,12 @@ export const initializeFirebaseApp = async () => {
     auth = getAuth(app);
     provider = new GoogleAuthProvider();
     storage = getStorage(app);
+    genAI = getAI(app, { backend: new GoogleAIBackend() });
+    model = getGenerativeModel(genAI, { model: "gemini-2.5-flash" });
     console.log('Firebase initialized');
   } catch (error) {
     console.log(error);
   }
 };
 
-export { app, db, auth, provider, storage };
+export { app, db, auth, provider, storage, genAI, model };

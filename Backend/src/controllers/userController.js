@@ -1,6 +1,6 @@
 import { doc, setDoc, collection, getDocs, query, where, updateDoc } from "firebase/firestore";
 // import { getFirestoreDB, getAuthInstance, getStorageInstance } from "./lib/firebase.js";
-import { db } from "./lib/firebase.js";
+import { db } from "../lib/firebase.js";
 
 export const addDocument = async (collection, data) => {
     try {
@@ -74,6 +74,38 @@ export const getUserReviews = async (uid) => {
     try {
         const collectionRef = collection(db, "reviews");
         const q = query(collectionRef, where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+        const reviews = [];
+        querySnapshot.forEach((doc) => {
+            reviews.push(doc.data());
+        });
+        return reviews;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// get booked itineraries of user using its uid
+export const getBookedItineraries = async (uid) => {
+    try {
+        const collectionRef = collection(db, "itineraries");
+        const q = query(collectionRef, where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+        const itineraries = [];
+        querySnapshot.forEach((doc) => {
+            itineraries.push(doc.data());
+        });
+        return itineraries;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// get liked reviews of user using its uid
+export const getLikedReviews = async (uid) => {
+    try {
+        const collectionRef = collection(db, "reviews");
+        const q = query(collectionRef, where('like', 'array-contains', uid));
         const querySnapshot = await getDocs(q);
         const reviews = [];
         querySnapshot.forEach((doc) => {

@@ -1,4 +1,4 @@
-import { razorpay } from './lib/razorpay.js';
+import { razorpay } from '../lib/razorpay.js';
 
 // Function to create a new order
 export const createOrder = async (amount, currency = 'INR') => {

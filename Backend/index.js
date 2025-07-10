@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { initializeFirebaseApp } from "./src/controllers/lib/firebase.js";
-import { razorpay } from "./src/controllers/lib/razorpay.js";
-import { handler } from "./src/controllers/handler.js";
+import { initializeFirebaseApp } from "./src/lib/firebase.js";
+import { razorpay } from "./src/lib/razorpay.js";
+import { handler } from "./src/handler.js";
 initializeFirebaseApp();
 
 const PORT = process.env.PORT || 3000;
@@ -350,7 +350,7 @@ app.post('/api/book-itinerary',async(req,res)=>{
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-})
+});
 
 app.put('/api/complete-itinerary',async(req,res)=>{
   try {
@@ -360,17 +360,17 @@ app.put('/api/complete-itinerary',async(req,res)=>{
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-})
+});
 
 app.get('/api/getItinerary/:uid',async(req,res)=>{
   try {
     const result = await handler(req, res, "GET");
-    res.status(200).json(result);
+    res.status(result.status).json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-})
+});
 
 app.post('/api/flush', async(req, res) => {
   try {
@@ -381,6 +381,29 @@ app.post('/api/flush', async(req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 })
+
+// AI powered routes
+
+// app.post('/api/getRecommendations', async (req, res) => {
+//   try {
+//     const result = await handler(req, res, "POST");
+//     res.status(result.status).json(result);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+// app.post('/api/generate-itinerary', async (req, res) => {
+//   try {
+//     const result = await handler(req, res, "POST");
+//     res.status(result.status).json(result);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
 
 // Start the server
 app.listen(PORT, () => {
